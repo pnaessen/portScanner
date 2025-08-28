@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/28 11:37:56 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/08/28 11:58:05 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ int main() {
 	std::cout << "Port 22 (SSH): " << test_port("google.com", 22) << std::endl;
 	std::cout << "Facebook: " << test_port("facebook.com", 80) << std::endl;
 	std::cout << "GitHub SSH: " << test_port("github.com", 22) << std::endl;
-	// std::cout << "GitHub SSH: " << test_port("dfhakfgdasfhdsgfghsdjckhjkshckshcshk sdcgsdchsdghchscghsdgch gchdsgchjsdgcg s.com", 22) << std::endl;
+	 std::cout << "BAD DOMAIN SSH: " << test_port("dfhakfgdasfhdsgfghsdjckhjkshckshcshk sdcgsdchsd s.com", 22) << std::endl;
 
 	return 0;
 }

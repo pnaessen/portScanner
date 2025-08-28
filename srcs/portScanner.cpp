@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/28 11:38:20 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/08/28 11:57:31 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,10 @@ sockaddr_in* setupSocket(const std::string& ip, int port) {
 	}
 	else {
 		sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
-		//sockaddr->sin_addr.s_addr = ;
+		if(sockaddr->sin_addr.s_addr == INADDR_NONE)
+    	std::cerr << "DNS resolution failed for: " << ip << std::endl;
+		delete sockaddr;
+		return NULL;
 	}
 	return sockaddr;
 }
@@ -83,6 +86,10 @@ PortStatus test_port(const std::string& ip, const int port) {
 	data.socketFd = socket(AF_INET,SOCK_STREAM, 0);
 	data.socketPoll =  setupPoll(data.socketFd);
 	data.sockaddr = setupSocket(ip, port);
+	if(!data.sockaddr) {
+		cleanupConnectionData(data);
+		return PORT_CLOSED;
+	}
 	
 	fcntl(data.socketFd, F_SETFL, O_NONBLOCK);
 	
