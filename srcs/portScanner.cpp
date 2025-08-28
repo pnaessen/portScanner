@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/28 10:45:19 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/08/28 11:38:20 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,18 +22,26 @@ pollfd* setupPoll(int socketFd) {
 	return socketPoll;
 }
 
+
+
 sockaddr_in* setupSocket(const std::string& ip, int port) {
 	
 	sockaddr_in* sockaddr = new sockaddr_in;
 	
-	//struct addrinfo * addinfo = setupAddr();
+	struct addrinfo *addinfo;
 	
 	sockaddr->sin_port = htons(port);
 	sockaddr->sin_family = AF_INET;
-	sockaddr->sin_addr.s_addr = inet_addr("8.8.8.8");
-	(void)ip;
-	//sockaddr.sin_addr = getaddrinfo(ip.c_str(), NULL, NULL, NULL);
-	
+	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
+	if (status == 0) {
+		struct sockaddr_in* addr_in = (struct sockaddr_in*)addinfo->ai_addr;
+    	sockaddr->sin_addr.s_addr = addr_in->sin_addr.s_addr;
+		freeaddrinfo(addinfo);
+	}
+	else {
+		sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
+		//sockaddr->sin_addr.s_addr = ;
+	}
 	return sockaddr;
 }
 
@@ -43,6 +51,8 @@ void cleanupConnectionData(ConnectionData& data) {
 		delete data.sockaddr;
 	if(data.socketPoll)
 		delete data.socketPoll;
+	// if(data.sockaddr->sin_addr)
+	// 	delete data.sockaddr->sin_addr;
 	if(data.socketFd != -1)
 		close(data.socketFd);
 }
