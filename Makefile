@@ -11,7 +11,7 @@ OBJ := $(SRC:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
 DEPS := $(OBJ:.o=.d)
 
 CC := c++
-CFLAGS := -Wall -Wextra -Werror -std=c++98
+CFLAGS := -Wall -Wextra -Werror -std=c++11 -pthread
 CPPFLAGS := -MMD -MP
 INCLUDES := -I$(HEADERS_DIR)
 

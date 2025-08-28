@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/28 11:57:31 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/08/28 12:00:20 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,6 @@ void cleanupConnectionData(ConnectionData& data) {
 		delete data.sockaddr;
 	if(data.socketPoll)
 		delete data.socketPoll;
-	// if(data.sockaddr->sin_addr)
-	// 	delete data.sockaddr->sin_addr;
 	if(data.socketFd != -1)
 		close(data.socketFd);
 }
