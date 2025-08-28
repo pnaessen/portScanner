@@ -30,6 +30,12 @@
 		PORT_FILTERED
 	};
 
+	struct ConnectionData {
+   	 	pollfd* socketPoll;
+   		sockaddr_in* sockaddr;
+   		int socketFd;
+	};
+
 	PortStatus test_port(const std::string& ip, const int port);
 
 #endif
