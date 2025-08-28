@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/28 09:24:24 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/08/28 10:45:19 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,47 +37,56 @@ sockaddr_in* setupSocket(const std::string& ip, int port) {
 	return sockaddr;
 }
 
-PortStatus test_port(const std::string& ip, const int port) {
+void cleanupConnectionData(ConnectionData& data) {
 	
-	struct sockaddr_in *sockaddr = setupSocket(ip, port);
+	if(data.sockaddr)
+		delete data.sockaddr;
+	if(data.socketPoll)
+		delete data.socketPoll;
+	if(data.socketFd != -1)
+		close(data.socketFd);
+}
+
+PortStatus handle_async_connect(ConnectionData& data) {
+
 	
-	
-	int socketFd = socket(AF_INET,SOCK_STREAM, 0);
-	fcntl(socketFd, F_SETFL, O_NONBLOCK);
-	
-	int status = connect(socketFd, (struct sockaddr *)sockaddr, sizeof(*sockaddr));
-	if(status < 0 && errno == EINPROGRESS) {
-		pollfd* socketPoll = setupPoll(socketFd);
-		int pollStatus = poll(socketPoll, 1, 3000);
-		if(pollStatus == 1) {
-			int error;
-			socklen_t len = sizeof(error);
-			getsockopt(socketFd, SOL_SOCKET, SO_ERROR, &error, &len);
-			delete socketPoll;
-			delete sockaddr;
-			close(socketFd);
-			if(error == 0) {
-				return PORT_OPEN;
-			}
-			else {
-				return PORT_FILTERED;
-			}
+	int pollStatus = poll(data.socketPoll, 1, 3000);
+	if(pollStatus == 1) {
+		int error;
+		socklen_t len = sizeof(error);
+		getsockopt(data.socketFd, SOL_SOCKET, SO_ERROR, &error, &len);
+		if(error == 0) {
+			return PORT_OPEN;
 		}
-		else if (pollStatus <= 0) {
-				//std::cerr << "Timeout" << std::endl;
-				delete socketPoll;
-				delete sockaddr;
-				close(socketFd);
-				return PORT_FILTERED;
-			}
 	}
-	else if(status == 0) {
-		
-		delete sockaddr;
-		close(socketFd);
-		return PORT_OPEN;
-	}
-	delete sockaddr;
-	close(socketFd);
+	else if (pollStatus <= 0) {
+			return PORT_FILTERED;
+		}
 	return PORT_FILTERED;
 }
+
+PortStatus test_port(const std::string& ip, const int port) {
+	
+	struct ConnectionData data;
+	
+	
+	data.socketFd = socket(AF_INET,SOCK_STREAM, 0);
+	data.socketPoll =  setupPoll(data.socketFd);
+	data.sockaddr = setupSocket(ip, port);
+	
+	fcntl(data.socketFd, F_SETFL, O_NONBLOCK);
+	
+	int status = connect(data.socketFd, (struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
+	if(status < 0 && errno == EINPROGRESS) {
+		PortStatus result = handle_async_connect(data);
+		cleanupConnectionData(data);
+		return result;
+	}
+	else if(status == 0) {
+		cleanupConnectionData(data);
+		return PORT_OPEN;
+	}
+	cleanupConnectionData(data);
+	return PORT_FILTERED;
+}
+

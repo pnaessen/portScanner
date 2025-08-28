@@ -36,6 +36,10 @@
    		int socketFd;
 	};
 
+	sockaddr_in* setupSocket(const std::string& ip, int port);
+	pollfd* setupPoll(int socketFd);
 	PortStatus test_port(const std::string& ip, const int port);
+	void cleanupConnectionData(ConnectionData& data);
+	PortStatus handle_async_connect(int socketFd);
 
 #endif
