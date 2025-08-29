@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/28 12:00:20 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/08/29 14:12:31 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,3 +105,42 @@ PortStatus test_port(const std::string& ip, const int port) {
 	return PORT_FILTERED;
 }
 
+
+
+
+
+sockaddr_in* setupSocket(const std::string& ip, int port) {
+	
+	sockaddr_in* sockaddr = new sockaddr_in;
+	
+	struct addrinfo *addinfo;
+	
+	sockaddr->sin_port = htons(port);
+	sockaddr->sin_family = AF_INET;
+	sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
+	return sockaddr;
+}
+
+
+std::string checkInput(const std::string& ip) {
+	
+	sockaddr_in sockaddr;
+	struct addrinfo *addinfo;
+	
+	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
+	if (status == 0) {
+		freeaddrinfo(addinfo);
+		return addinfo->ai_addr; // ast en std::string
+	}
+	else {
+		sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
+		if(sockaddr.sin_addr.s_addr == INADDR_NONE) {
+    		std::cerr << "DNS resolution failed for: " << ip << std::endl;
+			return "";
+		}
+		else {
+			return ip;
+		}
+	}
+	
+}

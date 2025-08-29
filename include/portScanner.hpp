@@ -40,6 +40,11 @@
    		int socketFd;
 	};
 
+	struct PortResult {
+    int port;
+    PortStatus status;
+	};
+
 	sockaddr_in* setupSocket(const std::string& ip, int port);
 	pollfd* setupPoll(int socketFd);
 	PortStatus test_port(const std::string& ip, const int port);
