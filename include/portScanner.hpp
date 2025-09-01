@@ -41,8 +41,8 @@
 	};
 
 	struct PortResult {
-    int port;
-    PortStatus status;
+    	int port;
+    	PortStatus status;
 	};
 
 	sockaddr_in* setupSocket(const std::string& ip, int port);

@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/01 09:52:02 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/01 10:12:39 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,8 +109,7 @@ std::string checkInput(const std::string& ip) {
 	else {
 		sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
 		if(sockaddr.sin_addr.s_addr == INADDR_NONE) {
-    		std::cerr << "DNS resolution failed for: " << ip << std::endl;
-			return "";
+			throw std::out_of_range("DNS resolution failed :") ;
 		}
 		else {
 			return ip;
