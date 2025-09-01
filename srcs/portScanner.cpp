@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/08/29 14:12:31 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/01 09:52:02 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,23 +28,10 @@ sockaddr_in* setupSocket(const std::string& ip, int port) {
 	
 	sockaddr_in* sockaddr = new sockaddr_in;
 	
-	struct addrinfo *addinfo;
 	
 	sockaddr->sin_port = htons(port);
 	sockaddr->sin_family = AF_INET;
-	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
-	if (status == 0) {
-		struct sockaddr_in* addr_in = (struct sockaddr_in*)addinfo->ai_addr;
-    	sockaddr->sin_addr.s_addr = addr_in->sin_addr.s_addr;
-		freeaddrinfo(addinfo);
-	}
-	else {
-		sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
-		if(sockaddr->sin_addr.s_addr == INADDR_NONE)
-    	std::cerr << "DNS resolution failed for: " << ip << std::endl;
-		delete sockaddr;
-		return NULL;
-	}
+	sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
 	return sockaddr;
 }
 
@@ -105,32 +92,19 @@ PortStatus test_port(const std::string& ip, const int port) {
 	return PORT_FILTERED;
 }
 
-
-
-
-
-sockaddr_in* setupSocket(const std::string& ip, int port) {
-	
-	sockaddr_in* sockaddr = new sockaddr_in;
-	
-	struct addrinfo *addinfo;
-	
-	sockaddr->sin_port = htons(port);
-	sockaddr->sin_family = AF_INET;
-	sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
-	return sockaddr;
-}
-
-
 std::string checkInput(const std::string& ip) {
 	
 	sockaddr_in sockaddr;
 	struct addrinfo *addinfo;
+	char ipstr[INET_ADDRSTRLEN] = {0};
 	
 	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
 	if (status == 0) {
+		struct sockaddr_in* addr_in = (struct sockaddr_in*)addinfo->ai_addr;
+		sockaddr.sin_addr.s_addr = addr_in->sin_addr.s_addr;
+		inet_ntop(AF_INET, &sockaddr.sin_addr, ipstr, sizeof(ipstr));
 		freeaddrinfo(addinfo);
-		return addinfo->ai_addr; // ast en std::string
+		return std::string(ipstr);
 	}
 	else {
 		sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
@@ -142,5 +116,4 @@ std::string checkInput(const std::string& ip) {
 			return ip;
 		}
 	}
-	
 }

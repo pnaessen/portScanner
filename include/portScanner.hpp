@@ -50,5 +50,6 @@
 	PortStatus test_port(const std::string& ip, const int port);
 	void cleanupConnectionData(ConnectionData& data);
 	PortStatus handle_async_connect(int socketFd);
+	std::string checkInput(const std::string& ip);
 
 #endif
