@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/01 10:14:04 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/02 13:43:19 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,12 +16,15 @@ int main() {
 
 	try {
 		
+		std::vector<int> ports = {80, 443, 22, 8, 25};
+		std::vector<std::future<PortResult>> futures;
 		std::string ip = checkInput("google.com");
+
 		
-		std::cout << "Port 80 (HTTP): " << test_port(ip, 80) << std::endl;
-		std::cout << "Port 443 (HTTPS): " << test_port(ip, 443) << std::endl;
-		std::cout << "Port 8 (RANDOM): " << test_port(ip, 8) << std::endl;
-		std::cout << "Port 22 (SSH): " << test_port(ip, 22) << std::endl;
+		for (int port : ports) {
+			auto future = std::async(std::launch::async, testPortAsync, ip, port);
+			futures.push_back(std::move(future));
+		}
 	}
 	catch (const std::exception &e) {
 		return 1;

@@ -22,7 +22,6 @@
     #include <unistd.h>
     #include <errno.h>
     #include <netdb.h>
-	#include <thread>
 	#include <chrono>
 	#include <vector>
 	#include <future>
@@ -51,5 +50,6 @@
 	void cleanupConnectionData(ConnectionData& data);
 	PortStatus handle_async_connect(int socketFd);
 	std::string checkInput(const std::string& ip);
+	PortResult testPortAsync(const std::string& ip, int port);
 
 #endif

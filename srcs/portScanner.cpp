@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/01 10:12:39 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/02 09:03:15 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,4 +115,14 @@ std::string checkInput(const std::string& ip) {
 			return ip;
 		}
 	}
+}
+
+PortResult testPortAsync(const std::string& ip, int port) {
+	
+	PortResult result;
+	result.port = port;
+	result.status = test_port(ip, port);
+	std::cout << result.status << std::endl;
+	return result;
+	
 }
