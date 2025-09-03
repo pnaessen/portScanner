@@ -3,14 +3,35 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/03 15:22:31 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/03 21:43:17 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
+
+std::vector<std::pair<int, int>> setupThreadDistribution(int startPort, int endPort) {
+	
+		int nbThread = std::thread::hardware_concurrency();
+		int totalPort =  (endPort - startPort) + 1;
+		int portPerThread = totalPort / nbThread;
+		int remainder = totalPort % nbThread ;
+		int currentPort = startPort;
+		std::vector<std::pair<int, int>> threadPortRanges;
+		
+		for (int i = 0; i < nbThread; ++i) {
+			int startPortThread = currentPort;
+			int count = portPerThread + (i < remainder ? 1 : 0);
+			int endPortThread = startPortThread + count - 1;
+			threadPortRanges.push_back(std::make_pair(startPortThread, endPortThread));
+			currentPort = endPortThread + 1;
+			 std::cout << "Thread " << i << ": ports " << startPortThread 
+			  << " to " << endPortThread << " (" << count << " ports)" << std::endl;
+		}
+		return threadPortRanges;
+}
 
 int main() {
 
@@ -20,7 +41,8 @@ int main() {
 		std::vector<std::future<PortResult>> futures;
 		std::string ip = checkInput("google.com");
 
-		
+		setupThreadDistribution(1, 1000);
+		return 0;
 		
 		for (int port : ports) {
 			auto future = std::async(std::launch::async, testPortAsync, ip, port);
@@ -40,18 +62,3 @@ int main() {
 
 
 
-void setupThreadDistribution(size_t size) {
-	
-		unsigned int nbThread = std::thread::hardware_concurrency();
-		int portPerThread = size / nbThread;
-}
-
-
-// int currentPort = 0;
-// for (int i = 0; i < nbThread; ++i) {
-//     int startPort = currentPort;
-//     int count = portPerThread + (i < remainder ? 1 : 0);
-//     int end_port = startPort + count - 1;
-//     thread_port_ranges.push_back(std::make_pair(start_port, end_port));
-//     currentPort = end_port + 1;
-// }
