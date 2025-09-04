@@ -6,7 +6,7 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/04 13:57:25 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/04 20:32:09 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,20 +37,17 @@ std::vector<std::pair<int, int>> setupThreadDistribution(int startPort, int endP
 int main() {
 
 	try {
-		
-		// std::vector<int> ports = {80, 443, 22, 8, 25, 66, 44, 333, 21, 8, 56, 31};
-		// std::vector<std::future<PortResult>> futures;
-		std::string ip = checkInput("google.com");
+		std::string ip = checkIpValid("google.com");
 
 		
-		auto ranges = setupThreadDistribution(1, 10);
+		auto threadPortRanges  = setupThreadDistribution(DEFAULT_START_PORT, DEFAULT_END_PORT );
+		
 		std::vector<std::future<void>> futures;
-		std::vector<std::vector<PortResult>> allResult(ranges.size());
+		std::vector<std::vector<PortResult>> allResult(threadPortRanges.size());
 
-		for (size_t i = 0; i < ranges.size(); ++i) {
-			futures.emplace_back(std::async(std::launch::async, workerThread, ip, ranges[i].first, ranges[i].second, std::ref(allResult[i])));
+		for (size_t i = 0; i < threadPortRanges.size(); ++i) {
+			futures.emplace_back(std::async(std::launch::async, workerThread, ip, threadPortRanges[i].first, threadPortRanges[i].second, std::ref(allResult[i])));
 			}
-
 			
 			for (auto& fut : futures) {
 				fut.get();
@@ -66,16 +63,6 @@ int main() {
 			std::cout << "Port " << result.port << ": " << result.status << std::endl;
 			}
 
-		
-		// for (int port : ports) {
-		// 	auto future = std::async(std::launch::async, testPortAsync, ip, port);
-		// 	futures.push_back(std::move(future));
-		// }
-
-		// for (auto& fut : futures) {
-		// 	PortResult result = fut.get();
-		// 	std::cout << "Port " << result.port << ": " << result.status << std::endl;
-		// }
 	}
 	catch (const std::exception &e) {
 		return 1;

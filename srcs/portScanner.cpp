@@ -6,7 +6,7 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/04 13:44:28 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/04 20:30:30 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,10 +45,10 @@ void cleanupConnectionData(ConnectionData& data) {
 		close(data.socketFd);
 }
 
-PortStatus handle_async_connect(ConnectionData& data) {
+PortStatus handleAsyncConnect(ConnectionData& data) {
 
 	
-	int pollStatus = poll(data.socketPoll, 1, 3000);
+	int pollStatus = poll(data.socketPoll, 1, DEFAULT_TIMEOUT_MS);
 	if(pollStatus == 1) {
 		int error;
 		socklen_t len = sizeof(error);
@@ -63,7 +63,7 @@ PortStatus handle_async_connect(ConnectionData& data) {
 	return PORT_FILTERED;
 }
 
-PortStatus test_port(const std::string& ip, const int port) {
+PortStatus testPort(const std::string& ip, const int port) {
 	
 	struct ConnectionData data;
 	
@@ -80,7 +80,7 @@ PortStatus test_port(const std::string& ip, const int port) {
 	
 	int status = connect(data.socketFd, (struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
 	if(status < 0 && errno == EINPROGRESS) {
-		PortStatus result = handle_async_connect(data);
+		PortStatus result = handleAsyncConnect(data);
 		cleanupConnectionData(data);
 		return result;
 	}
@@ -92,7 +92,7 @@ PortStatus test_port(const std::string& ip, const int port) {
 	return PORT_FILTERED;
 }
 
-std::string checkInput(const std::string& ip) {
+std::string checkIpValid(const std::string& ip) {
 	
 	sockaddr_in sockaddr;
 	struct addrinfo *addinfo;
@@ -117,22 +117,13 @@ std::string checkInput(const std::string& ip) {
 	}
 }
 
-PortResult testPortAsync(const std::string& ip, int port) {
-	
-	PortResult result;
-	result.port = port;
-	result.status = test_port(ip, port);
-	return result;
-	
-}
-
 void workerThread(const std::string& ip,int start, int end, std::vector<PortResult>& result ) {
 	
 	result.reserve(end - start + 1); 
 	for(int port = start; port <= end; port++) {
 		PortResult res;
 		res.port = port;
-		res.status = test_port(ip, port);
+		res.status = testPort(ip, port);
 		result.push_back(res);
 	}
 	return ;

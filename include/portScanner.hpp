@@ -26,6 +26,9 @@
 	#include <vector>
 	#include <future>
 
+	constexpr int DEFAULT_TIMEOUT_MS = 3000;
+	constexpr int DEFAULT_START_PORT = 1;
+	constexpr int DEFAULT_END_PORT = 100;
 
 	enum PortStatus {
 		PORT_OPEN,
@@ -46,11 +49,10 @@
 
 	sockaddr_in* setupSocket(const std::string& ip, int port);
 	pollfd* setupPoll(int socketFd);
-	PortStatus test_port(const std::string& ip, const int port);
+	PortStatus testPort(const std::string& ip, const int port);
 	void cleanupConnectionData(ConnectionData& data);
-	PortStatus handle_async_connect(int socketFd);
-	std::string checkInput(const std::string& ip);
-	PortResult testPortAsync(const std::string& ip, int port);
+	PortStatus handleAsyncConnect(int socketFd);
+	std::string checkIpValid(const std::string& ip);
 	void workerThread(const std::string& ip,int start, int end, std::vector<PortResult>& result );
 
 #endif
