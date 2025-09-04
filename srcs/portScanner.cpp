@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   portScanner.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/02 14:30:29 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/04 12:06:06 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -123,5 +123,16 @@ PortResult testPortAsync(const std::string& ip, int port) {
 	result.port = port;
 	result.status = test_port(ip, port);
 	return result;
+	
+}
+
+void worker_thread(const std::string& ip,int start, int end, std::vector<PortResult>& result ) {
+	
+	for(int i = 0; start <= end; start++) {
+		result[i].port = start;
+		result[i].status = test_port(ip, start);
+		i++;
+	}
+	return ;
 	
 }

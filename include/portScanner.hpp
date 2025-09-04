@@ -51,5 +51,6 @@
 	PortStatus handle_async_connect(int socketFd);
 	std::string checkInput(const std::string& ip);
 	PortResult testPortAsync(const std::string& ip, int port);
+	void worker_thread(const std::string& ip,int start, int end, std::vector<PortResult>& result );
 
 #endif
