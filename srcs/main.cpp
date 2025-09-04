@@ -6,7 +6,7 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/04 12:01:04 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/04 12:31:29 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,19 +45,29 @@ int main() {
 		
 		auto ranges = setupThreadDistribution(1, 50);
 		std::vector<std::future<void>> futures;
-		std::vector<std::vector<PortResult>> all_results(ranges.size());
+		std::vector<std::vector<PortResult>> allResult(ranges.size());
 
 		for (size_t i = 0; i < ranges.size(); ++i) {
-			futures.emplace_back(worker_thread, ip, ranges[i].first, ranges[i].second,std::ref(all_results[i]));
-		}
+			futures.emplace_back(std::async(std::launch::async, worker_thread, ip, ranges[i].first, ranges[i].second, std::ref(allResult[i])));
+			}
 
-		int i = 0;
-		for (auto& fut : futures) {
-   			fut.get();
-			auto result = all_results[i];
-			std::cout << "Port " << result[i].port << ": " << result[i].status << std::endl;
+			
+			for (auto& fut : futures) {
+				fut.get();
+			}
+			
+			std::vector<PortResult> finalResult;
+			for (const auto& threadResult : allResult) {
+				finalResult.insert(finalResult.end(), threadResult.begin(), 	threadResult.end());
+			}
+			
+			for(int i = 0; i <= 7; i++) {			
+			auto result = finalResult[i];
+			std::cout << "Port " << result.port << ": " << result.status << std::endl;
 			i++;
-		}
+			}
+
+		
 		// for (int port : ports) {
 		// 	auto future = std::async(std::launch::async, testPortAsync, ip, port);
 		// 	futures.push_back(std::move(future));
