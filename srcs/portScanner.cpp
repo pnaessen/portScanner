@@ -6,7 +6,7 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/04 12:14:35 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/04 13:44:28 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,7 +126,7 @@ PortResult testPortAsync(const std::string& ip, int port) {
 	
 }
 
-void worker_thread(const std::string& ip,int start, int end, std::vector<PortResult>& result ) {
+void workerThread(const std::string& ip,int start, int end, std::vector<PortResult>& result ) {
 	
 	result.reserve(end - start + 1); 
 	for(int port = start; port <= end; port++) {

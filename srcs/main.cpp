@@ -6,7 +6,7 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/04 12:31:29 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/04 13:57:25 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,12 +43,12 @@ int main() {
 		std::string ip = checkInput("google.com");
 
 		
-		auto ranges = setupThreadDistribution(1, 50);
+		auto ranges = setupThreadDistribution(1, 10);
 		std::vector<std::future<void>> futures;
 		std::vector<std::vector<PortResult>> allResult(ranges.size());
 
 		for (size_t i = 0; i < ranges.size(); ++i) {
-			futures.emplace_back(std::async(std::launch::async, worker_thread, ip, ranges[i].first, ranges[i].second, std::ref(allResult[i])));
+			futures.emplace_back(std::async(std::launch::async, workerThread, ip, ranges[i].first, ranges[i].second, std::ref(allResult[i])));
 			}
 
 			
@@ -61,10 +61,9 @@ int main() {
 				finalResult.insert(finalResult.end(), threadResult.begin(), 	threadResult.end());
 			}
 			
-			for(int i = 0; i <= 7; i++) {			
+			for(size_t i = 0; i < finalResult.size(); i++) {			
 			auto result = finalResult[i];
 			std::cout << "Port " << result.port << ": " << result.status << std::endl;
-			i++;
 			}
 
 		
