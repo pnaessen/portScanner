@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/06 15:21:03 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/06 15:31:14 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,14 @@
 
 PortScanner::PortScanner(const std::string& target) {
 	
-	_targetIp = checkIpValid(target);
-	_timeoutMs = DEFAULT_TIMEOUT_MS;
-    _threadCount = std::thread::hardware_concurrency();
+	try {
+		_targetIp = checkIpValid(target);
+		_timeoutMs = DEFAULT_TIMEOUT_MS;
+    	_threadCount = std::thread::hardware_concurrency();
+	}
+	catch (std::exception &e) {
+		std::cerr << e.what() << std::endl;
+	}
 }
 
 std::string PortScanner::checkIpValid(const std::string& ip) {
@@ -76,7 +81,7 @@ ConnectionData PortScanner::setupConnection(int port) {
 	data.sockaddr = setupSocket(_targetIp, port);
 	if(!data.sockaddr) {
 		cleanupConnectionData(data);
-        throw std::runtime_error("Failed to setup socket");
+        throw std::runtime_error("Failed to setup socket: ");
 	}
 	fcntl(data.socketFd, F_SETFL, O_NONBLOCK);
 	return data;
@@ -174,8 +179,8 @@ PortStatus PortScanner::testSinglePort(int port) {
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << e.what() << std::endl;
-		return PORT_CLOSED;
+		std::cerr << e.what();
+		std::cerr << port << std::endl;
 	}
 	
 }

@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/06 15:19:17 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/06 15:24:14 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ int main() {
 		PortScanner scanner("google.com");
 		
 		
-		auto finalResult = scanner.scanRange(80, 443);
+		auto finalResult = scanner.scanRange(DEFAULT_START_PORT, DEFAULT_END_PORT);
 
 		for(size_t i = 0; i < finalResult.size(); i++) {			
 			auto result = finalResult[i];

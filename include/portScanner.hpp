@@ -28,7 +28,7 @@
 
 	constexpr int DEFAULT_TIMEOUT_MS = 1500;
 	constexpr int DEFAULT_START_PORT = 1;
-	constexpr int DEFAULT_END_PORT = 15000;
+	constexpr int DEFAULT_END_PORT = 65000;
 
 	enum PortStatus {
 		PORT_OPEN,
