@@ -26,9 +26,9 @@
 	#include <vector>
 	#include <future>
 
-	constexpr int DEFAULT_TIMEOUT_MS = 3000;
+	constexpr int DEFAULT_TIMEOUT_MS = 1500;
 	constexpr int DEFAULT_START_PORT = 1;
-	constexpr int DEFAULT_END_PORT = 100;
+	constexpr int DEFAULT_END_PORT = 15000;
 
 	enum PortStatus {
 		PORT_OPEN,
@@ -47,12 +47,32 @@
     	PortStatus status;
 	};
 
-	sockaddr_in* setupSocket(const std::string& ip, int port);
-	pollfd* setupPoll(int socketFd);
-	PortStatus testPort(const std::string& ip, const int port);
-	void cleanupConnectionData(ConnectionData& data);
-	PortStatus handleAsyncConnect(int socketFd);
-	std::string checkIpValid(const std::string& ip);
-	void workerThread(const std::string& ip,int start, int end, std::vector<PortResult>& result );
+	
+	class PortScanner {
+		private:
+			std::string _targetIp;
+			int _timeoutMs;
+			int _threadCount;
+		
+			sockaddr_in* setupSocket(const std::string& ip, int port);
+			ConnectionData setupConnection(int port);
+			pollfd* setupPoll(int socketFd);
+			std::string checkIpValid(const std::string& ip);
+
+
+			void cleanupConnectionData(ConnectionData& data);
+			
+			PortStatus testSinglePort(int port);
+			PortStatus handleAsyncConnect(ConnectionData& data);
+
+			std::vector<std::pair<int, int>> calculateThreadDistribution(int start, int end);
+			void scanPortRange(int start, int end, std::vector<PortResult>& results);
+
+		public:
+			PortScanner(const std::string& target);
+			std::vector<PortResult> scanRange(int startPort, int endPort);
+			
+			// std::vector<PortResult> synScanRange(int startPort, int endPort);
+		};
 
 #endif
