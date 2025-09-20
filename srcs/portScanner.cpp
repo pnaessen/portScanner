@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/06 15:31:14 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/20 11:34:35 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -182,7 +182,7 @@ PortStatus PortScanner::testSinglePort(int port) {
 		std::cerr << e.what();
 		std::cerr << port << std::endl;
 	}
-	
+	return PORT_CLOSED;
 }
 
 void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& results){
