@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   portScanner.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/20 11:34:35 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/20 19:52:39 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 
 PortScanner::PortScanner(const std::string& target) {
-	
+
 	try {
 		_targetIp = checkIpValid(target);
 		_timeoutMs = DEFAULT_TIMEOUT_MS;
@@ -25,11 +25,11 @@ PortScanner::PortScanner(const std::string& target) {
 }
 
 std::string PortScanner::checkIpValid(const std::string& ip) {
-	
+
 	sockaddr_in sockaddr;
 	struct addrinfo *addinfo;
 	char ipstr[INET_ADDRSTRLEN] = {0};
-	
+
 	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
 	if (status == 0) {
 		struct sockaddr_in* addr_in = (struct sockaddr_in*)addinfo->ai_addr;
@@ -50,7 +50,7 @@ std::string PortScanner::checkIpValid(const std::string& ip) {
 }
 
 pollfd* PortScanner::setupPoll(int socketFd) {
-	
+
 	pollfd* socketPoll = new pollfd;
 
 	socketPoll->fd = socketFd;
@@ -62,10 +62,10 @@ pollfd* PortScanner::setupPoll(int socketFd) {
 
 
 sockaddr_in* PortScanner::setupSocket(const std::string& ip, int port) {
-	
+
 	sockaddr_in* sockaddr = new sockaddr_in;
-	
-	
+
+
 	sockaddr->sin_port = htons(port);
 	sockaddr->sin_family = AF_INET;
 	sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
@@ -73,9 +73,9 @@ sockaddr_in* PortScanner::setupSocket(const std::string& ip, int port) {
 }
 
 ConnectionData PortScanner::setupConnection(int port) {
-	
+
 	struct ConnectionData data;
-	
+
 	data.socketFd = socket(AF_INET,SOCK_STREAM, 0);
 	data.socketPoll =  setupPoll(data.socketFd);
 	data.sockaddr = setupSocket(_targetIp, port);
@@ -88,7 +88,7 @@ ConnectionData PortScanner::setupConnection(int port) {
 }
 
 void PortScanner::cleanupConnectionData(ConnectionData& data) {
-	
+
 	if(data.sockaddr)
 		delete data.sockaddr;
 	if(data.socketPoll)
@@ -99,7 +99,7 @@ void PortScanner::cleanupConnectionData(ConnectionData& data) {
 
 PortStatus PortScanner::handleAsyncConnect(ConnectionData& data) {
 
-	
+
 	int pollStatus = poll(data.socketPoll, 1, this->_timeoutMs);
 	if(pollStatus == 1) {
 		int error;
@@ -118,13 +118,13 @@ PortStatus PortScanner::handleAsyncConnect(ConnectionData& data) {
 
 
 std::vector<std::pair<int, int>> PortScanner::calculateThreadDistribution(int start, int end) {
-	
+
 		int totalPort =  (end - start) + 1;
 		int portPerThread = totalPort / _threadCount;
 		int remainder = totalPort % _threadCount ;
 		int currentPort = start;
 		std::vector<std::pair<int, int>> threadPortRanges;
-		
+
 		for (int i = 0; i < _threadCount; ++i) {
 			int startPortThread = currentPort;
 			int count = portPerThread + (i < remainder ? 1 : 0);
@@ -137,20 +137,20 @@ std::vector<std::pair<int, int>> PortScanner::calculateThreadDistribution(int st
 
 
 std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
-	
+
 	auto threadPortRanges = calculateThreadDistribution(startPort, endPort);
-	
+
 	std::vector<std::future<void>> futures;
 	std::vector<std::vector<PortResult>> allResult(threadPortRanges.size());
-	
+
 	for (size_t i = 0; i < threadPortRanges.size(); ++i) {
 		futures.emplace_back(std::async(std::launch::async, &PortScanner::scanPortRange, this, threadPortRanges[i].first, threadPortRanges[i].second, std::ref(allResult[i])));
 	}
-	
+
 	for (auto& fut : futures) {
 		fut.get();
 	}
-			
+
 	std::vector<PortResult> finalResult;
 	for (const auto& threadResult : allResult) {
 		finalResult.insert(finalResult.end(), threadResult.begin(), 	threadResult.end());
@@ -186,8 +186,8 @@ PortStatus PortScanner::testSinglePort(int port) {
 }
 
 void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& results){
-	
-	results.reserve(end - start + 1); 
+
+	results.reserve(end - start + 1);
 	for(int port = start; port <= end; port++) {
 		PortResult res;
 		res.port = port;

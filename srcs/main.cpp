@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
+/*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/06 15:24:14 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/20 20:04:13 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,13 @@
 int main() {
 
 	try {
-		
+
 		PortScanner scanner("google.com");
-		
-		
+
+
 		auto finalResult = scanner.scanRange(DEFAULT_START_PORT, DEFAULT_END_PORT);
 
-		for(size_t i = 0; i < finalResult.size(); i++) {			
+		for(size_t i = 0; i < finalResult.size(); i++) {
 			auto result = finalResult[i];
 			std::cout << "Port " << result.port << ": " << result.status << std::endl;
 		}
