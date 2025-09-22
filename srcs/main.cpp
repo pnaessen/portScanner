@@ -6,22 +6,29 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/20 20:04:13 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/21 00:56:59 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 
+// TODO: Add command line argument parsing
+// TODO: Add help menu and usage instructions
+// TODO: Add verbose/quiet mode options
 
 int main() {
 
 	try {
-
+		// TODO: Replace hardcoded target with command line argument
 		PortScanner scanner("google.com");
 
 
+		// TODO: Add option to specify custom port ranges
 		auto finalResult = scanner.scanRange(DEFAULT_START_PORT, DEFAULT_END_PORT);
 
+		// TODO: Improve output formatting (colors, tables, etc.)
+		// TODO: Add option to save results to file (JSON, XML, CSV)
+		// TODO: Show only open ports by default, add flag for all
 		for(size_t i = 0; i < finalResult.size(); i++) {
 			auto result = finalResult[i];
 			std::cout << "Port " << result.port << ": " << result.status << std::endl;
@@ -62,3 +69,15 @@ int main() {
 // 10-11  | Header Checksum  | 16 bits| Somme de contrôle IP
 // 12-15  | Source IP        | 32 bits| Votre IP
 // 16-19  | Destination IP   | 32 bits| IP cible
+
+// ========== RAW SOCKET IMPLEMENTATION TODOS ==========
+// TODO: CRITICAL - Check for root privileges before raw socket creation
+// TODO: CRITICAL - Implement proper IP header construction
+// TODO: CRITICAL - Implement TCP header construction with SYN flag
+// TODO: CRITICAL - Calculate IP and TCP checksums correctly
+// TODO: CRITICAL - Set up packet capture to receive SYN-ACK responses
+// TODO: CRITICAL - Parse received packets to determine port status
+// TODO: MEDIUM - Add support for IPv6 raw sockets
+// TODO: MEDIUM - Implement packet fragmentation handling
+// TODO: LOW - Add stealth scanning techniques (decoy packets)
+// TODO: LOW - Implement OS fingerprinting based on responses

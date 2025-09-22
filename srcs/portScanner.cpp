@@ -6,7 +6,7 @@
 /*   By: pn <pn@student.42lyon.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/20 19:52:39 by pn               ###   ########lyon.fr   */
+/*   Updated: 2025/09/21 00:56:55 by pn               ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@ PortScanner::PortScanner(const std::string& target) {
 		_targetIp = checkIpValid(target);
 		_timeoutMs = DEFAULT_TIMEOUT_MS;
     	_threadCount = std::thread::hardware_concurrency();
+		// TODO: Add option to configure timeout
+		// TODO: Add option to configure thread count
+		// TODO: Validate raw socket privileges for SYN scanning
 	}
 	catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
@@ -76,6 +79,7 @@ ConnectionData PortScanner::setupConnection(int port) {
 
 	struct ConnectionData data;
 
+	// TODO: Add support for raw sockets (SOCK_RAW) for SYN scanning
 	data.socketFd = socket(AF_INET,SOCK_STREAM, 0);
 	data.socketPoll =  setupPoll(data.socketFd);
 	data.sockaddr = setupSocket(_targetIp, port);
@@ -83,6 +87,7 @@ ConnectionData PortScanner::setupConnection(int port) {
 		cleanupConnectionData(data);
         throw std::runtime_error("Failed to setup socket: ");
 	}
+	// TODO: Add socket options for better performance (SO_REUSEADDR, etc.)
 	fcntl(data.socketFd, F_SETFL, O_NONBLOCK);
 	return data;
 }
@@ -99,19 +104,22 @@ void PortScanner::cleanupConnectionData(ConnectionData& data) {
 
 PortStatus PortScanner::handleAsyncConnect(ConnectionData& data) {
 
-
+	// TODO: Implement packet capture for raw socket responses
 	int pollStatus = poll(data.socketPoll, 1, this->_timeoutMs);
 	if(pollStatus == 1) {
 		int error;
 		socklen_t len = sizeof(error);
 		getsockopt(data.socketFd, SOL_SOCKET, SO_ERROR, &error, &len);
 		if(error == 0) {
+			// TODO: Add banner grabbing here for service detection
 			return PORT_OPEN;
 		}
 	}
 	else if (pollStatus <= 0) {
-			return PORT_FILTERED;
-		}
+		// TODO: Distinguish between filtered and closed ports better
+		return PORT_FILTERED;
+	}
+	// TODO: Add retry logic for uncertain results
 	return PORT_FILTERED;
 }
 
@@ -187,11 +195,15 @@ PortStatus PortScanner::testSinglePort(int port) {
 
 void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& results){
 
+	// TODO: Add progress indicator for long scans
+	// TODO: Implement adaptive timing based on network conditions
 	results.reserve(end - start + 1);
 	for(int port = start; port <= end; port++) {
 		PortResult res;
 		res.port = port;
 		res.status = testSinglePort(port);
+		// TODO: Add rate limiting to avoid detection
+		// TODO: Add randomization of port scan order
 		results.push_back(res);
 	}
 }

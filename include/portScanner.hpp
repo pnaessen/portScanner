@@ -26,6 +26,9 @@
 	#include <vector>
 	#include <future>
 
+	// TODO: Add raw socket support includes
+	// TODO: Consider adding libpcap for advanced packet crafting
+
 	constexpr int DEFAULT_TIMEOUT_MS = 1500;
 	constexpr int DEFAULT_START_PORT = 1;
 	constexpr int DEFAULT_END_PORT = 65000;
@@ -34,6 +37,8 @@
 		PORT_OPEN,
 		PORT_CLOSED,
 		PORT_FILTERED
+		// TODO: Add more status types for raw socket scanning
+		// TODO: Add PORT_UNFILTERED, PORT_OPEN_FILTERED states
 	};
 
 	struct ConnectionData {
@@ -45,15 +50,18 @@
 	struct PortResult {
     	int port;
     	PortStatus status;
+		// TODO: Add service detection information
+		// TODO: Add response time measurement
+		// TODO: Add banner grabbing results
 	};
 
-	
+
 	class PortScanner {
 		private:
 			std::string _targetIp;
 			int _timeoutMs;
 			int _threadCount;
-		
+
 			sockaddr_in* setupSocket(const std::string& ip, int port);
 			ConnectionData setupConnection(int port);
 			pollfd* setupPoll(int socketFd);
@@ -61,7 +69,7 @@
 
 
 			void cleanupConnectionData(ConnectionData& data);
-			
+
 			PortStatus testSinglePort(int port);
 			PortStatus handleAsyncConnect(ConnectionData& data);
 
@@ -71,8 +79,16 @@
 		public:
 			PortScanner(const std::string& target);
 			std::vector<PortResult> scanRange(int startPort, int endPort);
-			
+
+			// TODO: Implement SYN scan using raw sockets
 			// std::vector<PortResult> synScanRange(int startPort, int endPort);
+
+			// TODO: Add UDP scanning capability
+			// std::vector<PortResult> udpScanRange(int startPort, int endPort);
+
+			// TODO: Add FIN scan implementation
+			// TODO: Add NULL scan implementation
+			// TODO: Add Xmas scan implementation
 		};
 
 #endif
