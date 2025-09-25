@@ -25,13 +25,14 @@
 	#include <chrono>
 	#include <vector>
 	#include <future>
+	#include <sstream>
 
 	// TODO: Add raw socket support includes
 	// TODO: Consider adding libpcap for advanced packet crafting
 
 	constexpr int DEFAULT_TIMEOUT_MS = 1500;
 	constexpr int DEFAULT_START_PORT = 1;
-	constexpr int DEFAULT_END_PORT = 65000;
+	constexpr int DEFAULT_END_PORT = 65535;
 
 	enum PortStatus {
 		PORT_OPEN,
