@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 17:48:40 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/25 17:57:51 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,11 +21,11 @@ int main(int argc ,char **argv) {
 	int startPort = DEFAULT_START_PORT;
 	int endPort = DEFAULT_END_PORT;
 
-	if(parseArgs(argc, argv, startPort, endPort) != 0)
+	if(parseArgs(argc, argv, startPort, endPort) != PARSE_OK)
 		return 1;
 
 	try {
-		
+
 		PortScanner scanner(argv[1]);
 		auto finalResult = scanner.scanRange(startPort, endPort);
 
