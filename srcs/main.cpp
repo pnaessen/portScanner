@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 17:23:34 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/25 17:43:26 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,36 +18,11 @@
 
 int main(int argc ,char **argv) {
 
-	if (argc < 2 || argc > 4) {
-		printUsageHelpers(argv);
-		return 1;
-	}
 	int startPort = DEFAULT_START_PORT;
 	int endPort = DEFAULT_END_PORT;
-	if(argc > 2) {
-		std::stringstream ss(argv[2]);
-		if (!(ss >> startPort) || !ss.eof()) {
-			printUsageHelpers(argv);
-			return 1;
-		}
-		if(startPort < DEFAULT_START_PORT || startPort > DEFAULT_END_PORT) {
-			std::cout << "Usage: <START_PORT> must be between "
-					  << DEFAULT_START_PORT << " and " << DEFAULT_END_PORT << std::endl;
-			return 1;
-		}
-	}
-	if(argc > 3) {
-		std::stringstream ss(argv[3]);
-		if (!(ss >> endPort) || !ss.eof()) {
-			printUsageHelpers(argv);
-			return 1;
-		}
-		if(endPort < startPort || endPort > DEFAULT_END_PORT) {
-			std::cout << "Usage: <END_PORT> must be greater than or equal to <START_PORT> and less than or equal to "
-                      << DEFAULT_END_PORT << std::endl;
-			return 1;
-		}
-	}
+
+	if(checkArgs(argc, argv, startPort, endPort) != 0)
+		return 1;
 
 	try {
 		PortScanner scanner(argv[1]);
