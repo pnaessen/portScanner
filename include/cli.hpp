@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:19:19 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 17:41:44 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/25 17:54:33 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ enum ParseStatus {
 };
 
 void printUsageHelpers(char **argv);
-ParseStatus checkArgs(int argc, char **argv, int& startPort, int& endPort);
+ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort);
+ParseStatus parsePort(int startPort, int endPort);
 
 #endif /* CLI_HPP */

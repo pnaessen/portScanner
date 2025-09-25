@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:17:44 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 17:42:23 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/25 17:53:45 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void printUsageHelpers(char **argv) {
 				  << "Example: " << argv[0] << " 192.168.1.1 20 80" << std::endl;
 }
 
-ParseStatus checkArgs(int argc, char **argv, int& startPort, int& endPort) {
+ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort) {
 
 	if (argc < 2 || argc > 4) {
 		printUsageHelpers(argv);
@@ -30,9 +30,7 @@ ParseStatus checkArgs(int argc, char **argv, int& startPort, int& endPort) {
 			printUsageHelpers(argv);
 			return PARSE_ERROR;
 		}
-		if(startPort < DEFAULT_START_PORT || startPort > DEFAULT_END_PORT) {
-			std::cout << "Usage: <START_PORT> must be between "
-					  << DEFAULT_START_PORT << " and " << DEFAULT_END_PORT << std::endl;
+		if(parsePort(startPort, endPort) != 0) {
 			return PARSE_INVALID_PORT;
 		}
 	}
@@ -42,11 +40,26 @@ ParseStatus checkArgs(int argc, char **argv, int& startPort, int& endPort) {
 			printUsageHelpers(argv);
 			return PARSE_ERROR;
 		}
-		if(endPort < startPort || endPort > DEFAULT_END_PORT) {
-			std::cout << "Usage: <END_PORT> must be greater than or equal to <START_PORT> and less than or equal to "
-                      << DEFAULT_END_PORT << std::endl;
+		if(parsePort(startPort, endPort) != 0) {
 			return PARSE_INVALID_PORT;
 		}
 	}
 	return PARSE_OK;
+}
+
+ParseStatus parsePort(int startPort, int endPort) {
+
+	if(startPort < DEFAULT_START_PORT || startPort > DEFAULT_END_PORT) {
+		std::cout << "Usage: <START_PORT> must be between "
+				  << DEFAULT_START_PORT << " and " << DEFAULT_END_PORT << std::endl;
+		return PARSE_INVALID_PORT;
+		}
+
+	if(endPort < startPort || endPort > DEFAULT_END_PORT) {
+			std::cout << "Usage: <END_PORT> must be greater than or equal to <START_PORT> and less than or equal to "
+                      << DEFAULT_END_PORT << std::endl;
+			return PARSE_INVALID_PORT;
+		}
+
+		return PARSE_OK;
 }
