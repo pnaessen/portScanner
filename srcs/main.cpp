@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/26 11:53:34 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/26 13:21:23 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,8 +20,9 @@ int main(int argc, char **argv) {
 
 	int startPort = DEFAULT_START_PORT;
 	int endPort = DEFAULT_END_PORT;
+	ScanConfig flag;
 
-	if(parseArgs(argc, argv, startPort, endPort) != PARSE_OK)
+	if(parseArgs(argc, argv, startPort, endPort, flag) != PARSE_OK)
 		return 1;
 
 	try {
@@ -35,7 +36,7 @@ int main(int argc, char **argv) {
 		for(size_t i = 0; i < finalResult.size(); i++) {
 			auto result = finalResult[i];
 			if (finalResult[i].status == PORT_OPEN) {
-			std::cout << "Port " << result.port << ": " << result.status << std::endl;
+				std::cout << "Port " << result.port << ": " << result.status << std::endl;
 			}
 		}
 	 }

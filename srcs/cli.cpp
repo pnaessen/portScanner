@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:17:44 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/26 11:49:00 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/26 13:50:11 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,25 +18,63 @@ void printUsageHelpers(char **argv) {
 				  << "Example: " << argv[0] << " 192.168.1.1 20 80" << std::endl;
 }
 
-ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort) {
+int countPositionalArgs(int argc, char ** argv) {
 
-	if (argc < 2 || argc > 4) {
+	int posCount = 0;
+	for(int i = 0; i < argc; i++) {
+		if(argv[i][0] != '-') {
+			posCount++;
+		}
+	}
+	return posCount;
+}
+
+ParseStatus checkFlagValidity(char *str, ScanConfig& flag) {
+
+	for(int i = 0; str[i]; i++) {
+
+		if(str[0] == '-' && str[1] && i < 1) {
+			if(str[1] == 'a') {
+				flag.showAllPorts = true;
+			}
+			else if (str[1] == 'h') {
+				flag.helpRequested = true;
+			}
+			else
+				return PARSE_ERROR;
+		}
+		if(i > 2) {
+			return PARSE_ERROR;
+		}
+	}
+	return PARSE_OK;
+}
+
+ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort, ScanConfig& flag) {
+
+	int posCount = countPositionalArgs(argc, argv);
+
+	if (posCount < 2 || argc > 5) {
 		printUsageHelpers(argv);
 		return PARSE_INVALID_ARG_COUNT;
 	}
-	if(argc > 2) {
+	if(posCount > 2) {
 		std::stringstream ss(argv[2]);
 		if (!(ss >> startPort) || !ss.eof()) {
 			printUsageHelpers(argv);
 			return PARSE_ERROR;
 		}
 	}
-	if(argc > 3) {
+	if(posCount > 3) {
 		std::stringstream ss(argv[3]);
 		if (!(ss >> endPort) || !ss.eof()) {
 			printUsageHelpers(argv);
 			return PARSE_ERROR;
 		}
+	}
+	if(posCount != argc) {
+		if(checkFlagValidity(argv[argc - 1], flag) != PARSE_OK)
+			return PARSE_ERROR;
 	}
 
 	if(checkPortsValidity(startPort, endPort) != PARSE_OK) {
