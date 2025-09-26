@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:19:19 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 18:11:16 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/26 12:49:26 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,11 @@
 #include <sstream>
 #include "portScanner.hpp"
 
+struct ScanConfig {
+    bool showAllPorts = false;
+    bool helpRequested = false;
+};
+
 enum ParseStatus {
 	PARSE_OK,
 	PARSE_INVALID_ARG_COUNT,
@@ -27,6 +32,6 @@ enum ParseStatus {
 
 void printUsageHelpers(char **argv);
 ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort);
-ParseStatus validatePorts(int startPort, int endPort);
+ParseStatus checkPortsValidity(int startPort, int endPort);
 
 #endif /* CLI_HPP */

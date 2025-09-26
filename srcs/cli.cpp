@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:17:44 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 18:11:12 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/26 11:49:00 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,13 +39,13 @@ ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort) {
 		}
 	}
 
-	if(validatePorts(startPort, endPort) != PARSE_OK) {
+	if(checkPortsValidity(startPort, endPort) != PARSE_OK) {
 			return PARSE_INVALID_PORT;
 	}
 	return PARSE_OK;
 }
 
-ParseStatus validatePorts(int startPort, int endPort) {
+ParseStatus checkPortsValidity(int startPort, int endPort) {
 
 	if(startPort < DEFAULT_START_PORT || startPort > DEFAULT_END_PORT) {
 		std::cout << "Usage: <START_PORT> must be between "

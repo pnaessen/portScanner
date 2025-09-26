@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/25 17:57:51 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/26 11:53:34 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 // TODO: Add help menu and usage instructions
 // TODO: Add verbose/quiet mode options
 
-int main(int argc ,char **argv) {
+int main(int argc, char **argv) {
 
 	int startPort = DEFAULT_START_PORT;
 	int endPort = DEFAULT_END_PORT;
@@ -34,10 +34,13 @@ int main(int argc ,char **argv) {
 		// TODO: Show only open ports by default, add flag for all
 		for(size_t i = 0; i < finalResult.size(); i++) {
 			auto result = finalResult[i];
+			if (finalResult[i].status == PORT_OPEN) {
 			std::cout << "Port " << result.port << ": " << result.status << std::endl;
+			}
 		}
 	 }
 	catch (const std::exception &e) {
+		std::cerr << e.what() << std::endl;
 		return 1;
 	}
     return 0;

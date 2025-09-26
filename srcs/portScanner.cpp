@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/23 10:15:40 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/26 09:08:57 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,8 @@ PortScanner::PortScanner(const std::string& target) {
 		// TODO: Validate raw socket privileges for SYN scanning
 	}
 	catch (std::exception &e) {
-		std::cerr << e.what() << std::endl;
+		std::cerr << e.what();
+		throw std::out_of_range(target) ;
 	}
 }
 
@@ -44,7 +45,7 @@ std::string PortScanner::checkIpValid(const std::string& ip) {
 	else {
 		sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
 		if(sockaddr.sin_addr.s_addr == INADDR_NONE) {
-			throw std::out_of_range("DNS resolution failed :") ;
+			throw std::out_of_range("DNS resolution failed: ") ;
 		}
 		else {
 			return ip;
