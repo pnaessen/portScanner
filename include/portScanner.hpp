@@ -87,6 +87,7 @@
 			void monitorProgress(std::atomic<bool>* scanComplete, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime);
 			std::vector<PortResult> aggregateResults(std::vector<std::vector<PortResult>>& allResult);
 			void launchScanThreads(std::vector<std::pair<int, int>>& threadPortRanges, std::vector<std::vector<PortResult>>& allResult, std::vector<std::atomic<int>>& progress);
+			void setupProgressMonitoring(std::optional<std::thread>& monitor, std::vector<std::atomic<int>>& progress, std::atomic<bool>& scanComplete, int totalPorts);
 
 		public:
 			PortScanner(const std::string& target, bool flag);

@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 13:29:16 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 13:46:23 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,6 +185,15 @@ void PortScanner::launchScanThreads(std::vector<std::pair<int, int>>& threadPort
 	}
 }
 
+void PortScanner::setupProgressMonitoring(std::optional<std::thread>& monitor, std::vector<std::atomic<int>>& progress, std::atomic<bool>& scanComplete, int totalPorts) {
+
+	auto startTime = std::chrono::steady_clock::now();
+
+	if(_noProgress == false) {
+    	monitor.emplace(&PortScanner::monitorProgress, this, &scanComplete, &progress, totalPorts, startTime);
+	}
+}
+
 std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 
 
@@ -194,13 +203,10 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 	std::vector<std::atomic<int>> progress(threadPortRanges.size());
 
 	int totalPorts = endPort - startPort + 1;
-    auto startTime = std::chrono::steady_clock::now();
+	std::optional<std::thread> monitor;
 	std::atomic<bool> scanComplete(false);
 
-	std::optional<std::thread> monitor;
-	if(_noProgress == false) {
-    	monitor.emplace(&PortScanner::monitorProgress, this, &scanComplete, &progress, totalPorts, startTime);
-	}
+	setupProgressMonitoring(monitor, progress, scanComplete, totalPorts);
 
 	launchScanThreads(threadPortRanges, allResult, progress);
 	scanComplete = true;
