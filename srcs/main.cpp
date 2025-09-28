@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/26 13:21:23 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 09:13:35 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,11 @@ int main(int argc, char **argv) {
 	if(parseArgs(argc, argv, startPort, endPort, flag) != PARSE_OK)
 		return 1;
 
+	if(flag.helpRequested == true) {
+		printUsageMenu();
+		return 0;
+	}
+
 	try {
 
 		PortScanner scanner(argv[1]);
@@ -32,10 +37,9 @@ int main(int argc, char **argv) {
 
 		// TODO: Improve output formatting (colors, tables, etc.)
 		// TODO: Add option to save results to file (JSON, XML, CSV)
-		// TODO: Show only open ports by default, add flag for all
 		for(size_t i = 0; i < finalResult.size(); i++) {
 			auto result = finalResult[i];
-			if (finalResult[i].status == PORT_OPEN) {
+			if (finalResult[i].status == PORT_OPEN || flag.showAllPorts == true) {
 				std::cout << "Port " << result.port << ": " << result.status << std::endl;
 			}
 		}

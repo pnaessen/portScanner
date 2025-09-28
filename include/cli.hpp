@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:19:19 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/26 13:29:03 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 09:13:40 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cstring>
 #include "portScanner.hpp"
 
 struct ScanConfig {
@@ -35,4 +36,6 @@ ParseStatus parseArgs(int argc, char **argv, int& startPort, int& endPort, ScanC
 int countPositionalArgs(int argc, char **argv);
 ParseStatus checkPortsValidity(int startPort, int endPort);
 ParseStatus checkFlagValidity(char *str, ScanConfig& flag);
+void printUsageMenu();
+
 #endif /* CLI_HPP */
