@@ -39,6 +39,7 @@
 	constexpr int DEFAULT_TIMEOUT_MS = 1500;
 	constexpr int DEFAULT_START_PORT = 1;
 	constexpr int DEFAULT_END_PORT = 65535;
+	static constexpr int PROGRESS_UPDATE_INTERVAL_MS = 500;
 
 	enum PortStatus {
 		PORT_OPEN,
@@ -83,8 +84,9 @@
 
 			std::vector<std::pair<int, int>> calculateThreadDistribution(int start, int end);
 			void scanPortRange(int start, int end, std::vector<PortResult>& results, std::atomic<int>& progress);
-			void monitorProgress(std::atomic<bool>* finish, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime);
-
+			void monitorProgress(std::atomic<bool>* scanComplete, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime);
+			std::vector<PortResult> aggregateResults(std::vector<std::vector<PortResult>>& allResult);
+			void launchScanThreads(std::vector<std::pair<int, int>>& threadPortRanges, std::vector<std::vector<PortResult>>& allResult, std::vector<std::atomic<int>>& progress);
 
 		public:
 			PortScanner(const std::string& target, bool flag);

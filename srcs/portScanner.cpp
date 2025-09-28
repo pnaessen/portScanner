@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 11:47:03 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 13:29:16 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,41 +143,36 @@ std::vector<std::pair<int, int>> PortScanner::calculateThreadDistribution(int st
 		return threadPortRanges;
 }
 
-void PortScanner::monitorProgress(std::atomic<bool>* finish, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime) {
+void PortScanner::monitorProgress(std::atomic<bool>* scanComplete, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime) {
 
-    while (!finish->load()) {
+    while (!scanComplete->load()) {
 
-        int checked = 0;
+        int scannedPorts = 0;
         for (auto& p : *progress) {
-			 checked += p.load();
+			 scannedPorts += p.load();
 		}
-        int percent = (checked * 100) / totalPorts;
+        int percent = (scannedPorts * 100) / totalPorts;
         auto now = std::chrono::steady_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - startTime).count();
-        std::cout << "\rProgress: " << percent << "% (" << checked << "/" << totalPorts << ")"
+        std::cout << "\rProgress: " << percent << "% (" << scannedPorts << "/" << totalPorts << ")"
                   << " | Elapsed time: " << elapsed << "s" << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        std::this_thread::sleep_for(std::chrono::milliseconds(PROGRESS_UPDATE_INTERVAL_MS));
     }
     std::cout << std::endl;
 }
 
-std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
+std::vector<PortResult> PortScanner::aggregateResults(std::vector<std::vector<PortResult>>& allResult) {
 
+	std::vector<PortResult> finalResult;
+	for (const auto& threadResult : allResult) {
+		finalResult.insert(finalResult.end(), threadResult.begin(), threadResult.end());
+	}
+	return finalResult;
+}
 
-	auto threadPortRanges = calculateThreadDistribution(startPort, endPort);
+void PortScanner::launchScanThreads(std::vector<std::pair<int, int>>& threadPortRanges, std::vector<std::vector<PortResult>>& allResult, std::vector<std::atomic<int>>& progress) {
 
 	std::vector<std::future<void>> futures;
-	std::vector<std::vector<PortResult>> allResult(threadPortRanges.size());
-	std::vector<std::atomic<int>> progress(threadPortRanges.size());
-
-	int totalPorts = endPort - startPort + 1;
-    auto startTime = std::chrono::steady_clock::now();
-	std::atomic<bool> finish(false);
-
-	std::optional<std::thread> monitor;
-	if(_noProgress == false) {
-    	monitor.emplace(&PortScanner::monitorProgress, this, &finish, &progress, totalPorts, startTime);
-	}
 
 	for (size_t i = 0; i < threadPortRanges.size(); ++i) {
 		futures.emplace_back(std::async(std::launch::async, &PortScanner::scanPortRange, this,
@@ -188,16 +183,33 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 	for (auto& fut : futures) {
 		fut.get();
 	}
-	finish = true;
+}
+
+std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
+
+
+	auto threadPortRanges = calculateThreadDistribution(startPort, endPort);
+
+	std::vector<std::vector<PortResult>> allResult(threadPortRanges.size());
+	std::vector<std::atomic<int>> progress(threadPortRanges.size());
+
+	int totalPorts = endPort - startPort + 1;
+    auto startTime = std::chrono::steady_clock::now();
+	std::atomic<bool> scanComplete(false);
+
+	std::optional<std::thread> monitor;
+	if(_noProgress == false) {
+    	monitor.emplace(&PortScanner::monitorProgress, this, &scanComplete, &progress, totalPorts, startTime);
+	}
+
+	launchScanThreads(threadPortRanges, allResult, progress);
+	scanComplete = true;
 
 	if(monitor.has_value()) {
 		monitor->join();
 	}
 
-	std::vector<PortResult> finalResult;
-	for (const auto& threadResult : allResult) {
-		finalResult.insert(finalResult.end(), threadResult.begin(), threadResult.end());
-	}
+	std::vector<PortResult> finalResult = aggregateResults(allResult);
 	return finalResult;
 }
 
