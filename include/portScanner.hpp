@@ -28,6 +28,8 @@
 	#include <sstream>
 	#include <atomic>
 	#include <thread>
+	#include <optional>
+
 
 
 
@@ -66,7 +68,7 @@
 			std::string _targetIp;
 			int _timeoutMs;
 			int _threadCount;
-			bool _mute;
+			bool _noProgress;
 
 			sockaddr_in* setupSocket(const std::string& ip, int port);
 			ConnectionData setupConnection(int port);

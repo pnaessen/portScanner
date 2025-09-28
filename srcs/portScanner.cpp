@@ -6,14 +6,14 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 11:22:35 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 11:39:01 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 #include "cli.hpp"
 
-PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _mute(flag) {
+PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _noProgress(flag) {
 
 	try {
 		_targetIp = checkIpValid(target);
@@ -62,7 +62,6 @@ pollfd* PortScanner::setupPoll(int socketFd) {
 
 	return socketPoll;
 }
-
 
 
 sockaddr_in* PortScanner::setupSocket(const std::string& ip, int port) {
@@ -175,9 +174,10 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
     auto startTime = std::chrono::steady_clock::now();
 	std::atomic<bool> finish(false);
 
-//	if(_mute == false) {
-		std::thread monitor(&PortScanner::monitorProgress, this, &finish, &progress, totalPorts, startTime);
-	//}
+	std::optional<std::thread> monitor;
+	if(_noProgress == false) {
+    	monitor.emplace(&PortScanner::monitorProgress, this, &finish, &progress, totalPorts, startTime);
+	}
 
 	for (size_t i = 0; i < threadPortRanges.size(); ++i) {
 		futures.emplace_back(std::async(std::launch::async, &PortScanner::scanPortRange, this,
@@ -189,8 +189,9 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 		fut.get();
 	}
 	finish = true;
-	if(_mute == false) {
-		monitor.join();
+
+	if(monitor.has_value()) {
+		monitor->join();
 	}
 
 	std::vector<PortResult> finalResult;

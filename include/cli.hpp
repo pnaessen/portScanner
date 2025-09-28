@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:19:19 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 11:15:33 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 11:34:00 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 struct ScanConfig {
     bool showAllPorts = false;
     bool helpRequested = false;
-	bool mute = false;
+	bool noProgress = false;
 };
 
 enum ParseStatus {
