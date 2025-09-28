@@ -83,7 +83,7 @@
 
 			std::vector<std::pair<int, int>> calculateThreadDistribution(int start, int end);
 			void scanPortRange(int start, int end, std::vector<PortResult>& results, std::atomic<int>& progress);
-			void monitorProgress(std::atomic<bool>* done, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime);
+			void monitorProgress(std::atomic<bool>* finish, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime);
 
 
 		public:

@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 11:39:01 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 11:47:03 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,9 +143,9 @@ std::vector<std::pair<int, int>> PortScanner::calculateThreadDistribution(int st
 		return threadPortRanges;
 }
 
-void PortScanner::monitorProgress(std::atomic<bool>* done, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime) {
+void PortScanner::monitorProgress(std::atomic<bool>* finish, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime) {
 
-    while (!done->load()) {
+    while (!finish->load()) {
 
         int checked = 0;
         for (auto& p : *progress) {
@@ -156,7 +156,7 @@ void PortScanner::monitorProgress(std::atomic<bool>* done, std::vector<std::atom
         auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - startTime).count();
         std::cout << "\rProgress: " << percent << "% (" << checked << "/" << totalPorts << ")"
                   << " | Elapsed time: " << elapsed << "s" << std::flush;
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     std::cout << std::endl;
 }
