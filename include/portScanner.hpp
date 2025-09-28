@@ -26,6 +26,10 @@
 	#include <vector>
 	#include <future>
 	#include <sstream>
+	#include <atomic>
+	#include <thread>
+
+
 
 	// TODO: Add raw socket support includes
 	// TODO: Consider adding libpcap for advanced packet crafting
@@ -62,7 +66,7 @@
 			std::string _targetIp;
 			int _timeoutMs;
 			int _threadCount;
-			bool _verbose;
+			bool _mute;
 
 			sockaddr_in* setupSocket(const std::string& ip, int port);
 			ConnectionData setupConnection(int port);
@@ -76,7 +80,9 @@
 			PortStatus handleAsyncConnect(ConnectionData& data);
 
 			std::vector<std::pair<int, int>> calculateThreadDistribution(int start, int end);
-			void scanPortRange(int start, int end, std::vector<PortResult>& results);
+			void scanPortRange(int start, int end, std::vector<PortResult>& results, std::atomic<int>& progress);
+			void monitorProgress(std::atomic<bool>* done, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime);
+
 
 		public:
 			PortScanner(const std::string& target, bool flag);

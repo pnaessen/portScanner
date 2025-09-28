@@ -6,14 +6,14 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 09:48:24 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 11:22:35 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 #include "cli.hpp"
 
-PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _verbose(flag) {
+PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _mute(flag) {
 
 	try {
 		_targetIp = checkIpValid(target);
@@ -144,29 +144,61 @@ std::vector<std::pair<int, int>> PortScanner::calculateThreadDistribution(int st
 		return threadPortRanges;
 }
 
+void PortScanner::monitorProgress(std::atomic<bool>* done, std::vector<std::atomic<int>>* progress, int totalPorts, std::chrono::steady_clock::time_point startTime) {
+
+    while (!done->load()) {
+
+        int checked = 0;
+        for (auto& p : *progress) {
+			 checked += p.load();
+		}
+        int percent = (checked * 100) / totalPorts;
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - startTime).count();
+        std::cout << "\rProgress: " << percent << "% (" << checked << "/" << totalPorts << ")"
+                  << " | Elapsed time: " << elapsed << "s" << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+    std::cout << std::endl;
+}
 
 std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
+
 
 	auto threadPortRanges = calculateThreadDistribution(startPort, endPort);
 
 	std::vector<std::future<void>> futures;
 	std::vector<std::vector<PortResult>> allResult(threadPortRanges.size());
+	std::vector<std::atomic<int>> progress(threadPortRanges.size());
+
+	int totalPorts = endPort - startPort + 1;
+    auto startTime = std::chrono::steady_clock::now();
+	std::atomic<bool> finish(false);
+
+//	if(_mute == false) {
+		std::thread monitor(&PortScanner::monitorProgress, this, &finish, &progress, totalPorts, startTime);
+	//}
 
 	for (size_t i = 0; i < threadPortRanges.size(); ++i) {
-		futures.emplace_back(std::async(std::launch::async, &PortScanner::scanPortRange, this, threadPortRanges[i].first, threadPortRanges[i].second, std::ref(allResult[i])));
+		futures.emplace_back(std::async(std::launch::async, &PortScanner::scanPortRange, this,
+			threadPortRanges[i].first, threadPortRanges[i].second,
+			std::ref(allResult[i]), std::ref(progress[i])));
 	}
 
 	for (auto& fut : futures) {
 		fut.get();
 	}
+	finish = true;
+	if(_mute == false) {
+		monitor.join();
+	}
 
 	std::vector<PortResult> finalResult;
 	for (const auto& threadResult : allResult) {
-		finalResult.insert(finalResult.end(), threadResult.begin(), 	threadResult.end());
+		finalResult.insert(finalResult.end(), threadResult.begin(), threadResult.end());
 	}
 	return finalResult;
 }
-
 
 PortStatus PortScanner::testSinglePort(int port) {
 
@@ -194,17 +226,18 @@ PortStatus PortScanner::testSinglePort(int port) {
 	return PORT_CLOSED;
 }
 
-void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& results){
+void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& results, std::atomic<int>& progress) {
 
-	// TODO: Add progress indicator for long scans
 	// TODO: Implement adaptive timing based on network conditions
-	results.reserve(end - start + 1);
-	for(int port = start; port <= end; port++) {
-		PortResult res;
-		res.port = port;
-		res.status = testSinglePort(port);
+
+    results.reserve(end - start + 1);
+    for(int port = start; port <= end; port++) {
+        PortResult res;
+        res.port = port;
+        res.status = testSinglePort(port);
 		// TODO: Add rate limiting to avoid detection
 		// TODO: Add randomization of port scan order
-		results.push_back(res);
-	}
+        results.push_back(res);
+        progress++;
+    }
 }
