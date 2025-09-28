@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/25 17:17:44 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 09:16:52 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 09:50:36 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,9 @@ ParseStatus checkFlagValidity(char *str, ScanConfig& flag) {
 	}
 	else if (str[1] == 'h') {
 		flag.helpRequested = true;
+	}
+	else if (str[1] == 'v') {
+		flag._verbose = true;
 	}
 	else
 		return PARSE_ERROR;

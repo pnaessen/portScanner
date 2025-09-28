@@ -62,6 +62,7 @@
 			std::string _targetIp;
 			int _timeoutMs;
 			int _threadCount;
+			bool _verbose;
 
 			sockaddr_in* setupSocket(const std::string& ip, int port);
 			ConnectionData setupConnection(int port);
@@ -78,7 +79,7 @@
 			void scanPortRange(int start, int end, std::vector<PortResult>& results);
 
 		public:
-			PortScanner(const std::string& target);
+			PortScanner(const std::string& target, bool flag);
 			std::vector<PortResult> scanRange(int startPort, int endPort);
 
 			// TODO: Implement SYN scan using raw sockets

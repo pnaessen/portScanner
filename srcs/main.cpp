@@ -6,14 +6,13 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 09:13:35 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 09:46:45 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 #include "cli.hpp"
 
-// TODO: Add help menu and usage instructions
 // TODO: Add verbose/quiet mode options
 
 int main(int argc, char **argv) {
@@ -32,7 +31,7 @@ int main(int argc, char **argv) {
 
 	try {
 
-		PortScanner scanner(argv[1]);
+		PortScanner scanner(argv[1], flag._verbose);
 		auto finalResult = scanner.scanRange(startPort, endPort);
 
 		// TODO: Improve output formatting (colors, tables, etc.)

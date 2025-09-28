@@ -6,17 +6,17 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/26 13:22:52 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/28 09:48:24 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
+#include "cli.hpp"
 
-PortScanner::PortScanner(const std::string& target) {
+PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _verbose(flag) {
 
 	try {
 		_targetIp = checkIpValid(target);
-		_timeoutMs = DEFAULT_TIMEOUT_MS;
     	_threadCount = std::thread::hardware_concurrency();
 		// TODO: Add option to configure timeout
 		// TODO: Add option to configure thread count
