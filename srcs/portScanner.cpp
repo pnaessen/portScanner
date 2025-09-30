@@ -6,18 +6,19 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/30 10:56:00 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 11:25:36 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 #include "cli.hpp"
 
-PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _noProgress(flag) {
+PortScanner::PortScanner(const std::string& targetIP, bool flag) : _timeoutMs(DEFAULT_TIMEOUT_MS), _noProgress(flag) {
 
 	try {
-		_targetIp = checkIpValid(target);
+		_targetIp = checkIpValid(targetIP);
     	_threadCount = std::thread::hardware_concurrency();
+		_localIp = getLocalIP("8.8.8.8");
 		if(getuid() != 0) {
 			throw std::out_of_range("No root privilege ");
 		}
@@ -25,8 +26,30 @@ PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFA
 	}
 	catch (std::exception &e) {
 		std::cerr << e.what();
-		throw std::out_of_range(target) ;
+		throw std::out_of_range(targetIP) ;
 	}
+}
+
+std::string PortScanner::getLocalIP(const std::string& target_ip) {
+
+    int sockFd = socket(AF_INET, SOCK_DGRAM, 0);
+
+    struct sockaddr_in target;
+    target.sin_family = AF_INET;
+    target.sin_port = htons(80);
+    target.sin_addr.s_addr = inet_addr(target_ip.c_str());
+
+    connect(sockFd, (struct sockaddr*)&target, sizeof(target));
+
+    struct sockaddr_in local;
+    socklen_t len = sizeof(local);
+    getsockname(sockFd, (struct sockaddr*)&local, &len);
+
+    char ip_str[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &local.sin_addr, ip_str, sizeof(ip_str));
+
+    close(sockFd);
+    return std::string(ip_str);
 }
 
 std::string PortScanner::checkIpValid(const std::string& ip) {
@@ -222,9 +245,17 @@ PortStatus PortScanner::testSinglePort(int port) {
 	try
 	{
 		ConnectionData data = setupConnection(port);
+
 		// TODO: Creat ip and tcp headers
 		char buffer[40];
-		int packetLen = 40; // total length of  packet 40 bytes ??
+		uint16_t srcPort = rand() % (65535 - 49152 + 1) + 49152;
+		struct iphdr* ip = (struct iphdr*)buffer;
+		struct tcphdr* tcp = (struct tcphdr*)(buffer + sizeof(struct iphdr));
+
+		fillIpHeader(ip, _localIp, data.sockaddr->sin_addr.s_addr, sizeof(buffer));
+		fillTcpHeader(tcp, srcPort, port);
+
+		int packetLen = 40;
 		int sendSocket = sendto(data.socketFd, buffer, packetLen, 0,(struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
 		if(sendSocket < 0) {
 			cleanupConnectionData(data);
@@ -235,13 +266,6 @@ PortStatus PortScanner::testSinglePort(int port) {
 		// 	PortStatus result = handleAsyncConnect(data);
 		// 	cleanupConnectionData(data);
 		// 	return result;
-		// }
-		// else if(status == 0) {
-		// 	cleanupConnectionData(data);
-		// 	return PORT_OPEN;
-		// }
-		// cleanupConnectionData(data);
-		// return PORT_FILTERED;
 	}
 	catch(const std::exception& e)
 	{

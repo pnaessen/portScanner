@@ -73,6 +73,7 @@
 			int _timeoutMs;
 			int _threadCount;
 			bool _noProgress;
+			std::string _localIp;
 
 			sockaddr_in* setupSocket(const std::string& ip, int port);
 			ConnectionData setupConnection(int port);
@@ -94,8 +95,13 @@
 
 
 			int createRawSocket();
+			void fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen);
+			void fillTcpHeader(struct tcphdr* tcp, int srcPort, int dstPort);
+			std::string getLocalIP(const std::string& target_ip);
+
+
 		public:
-			PortScanner(const std::string& target, bool flag);
+			PortScanner(const std::string& targetIP, bool flag);
 			std::vector<PortResult> scanRange(int startPort, int endPort);
 
 			// TODO: Implement SYN scan using raw sockets
