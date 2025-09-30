@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/30 10:13:05 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 10:31:09 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,10 +80,8 @@ ConnectionData PortScanner::setupConnection(int port) {
 
 	struct ConnectionData data;
 
-	// TODO: Add support for raw sockets (SOCK_RAW) for SYN scanning
-	//data.socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
-	data.socketFd = socket(AF_INET,SOCK_STREAM, 0);
-	data.socketPoll =  setupPoll(data.socketFd);
+	data.socketFd = createRawSocket();
+	//data.socketPoll =  setupPoll(data.socketFd);
 	data.sockaddr = setupSocket(_targetIp, port);
 	if(!data.sockaddr) {
 		cleanupConnectionData(data);
@@ -226,18 +224,26 @@ PortStatus PortScanner::testSinglePort(int port) {
 	try
 	{
 		ConnectionData data = setupConnection(port);
-		int status = connect(data.socketFd, (struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
-		if(status < 0 && errno == EINPROGRESS) {
-			PortStatus result = handleAsyncConnect(data);
+		// TODO: Creat ip and tcp headers
+		char buffer[4096];
+		int packetLen = 0; // total length of  packet 40 bytes ??
+		int sendSocket = sendto(data.socketFd, buffer, packetLen, 0,(struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
+		if(sendSocket < 0) {
 			cleanupConnectionData(data);
-			return result;
+			return PORT_CLOSED;
 		}
-		else if(status == 0) {
-			cleanupConnectionData(data);
-			return PORT_OPEN;
-		}
-		cleanupConnectionData(data);
-		return PORT_FILTERED;
+		// int status = connect(data.socketFd, (struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
+		// if(status < 0 && errno == EINPROGRESS) {
+		// 	PortStatus result = handleAsyncConnect(data);
+		// 	cleanupConnectionData(data);
+		// 	return result;
+		// }
+		// else if(status == 0) {
+		// 	cleanupConnectionData(data);
+		// 	return PORT_OPEN;
+		// }
+		// cleanupConnectionData(data);
+		// return PORT_FILTERED;
 	}
 	catch(const std::exception& e)
 	{

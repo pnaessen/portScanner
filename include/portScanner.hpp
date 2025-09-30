@@ -29,6 +29,8 @@
 	#include <atomic>
 	#include <thread>
 	#include <optional>
+	#include <netinet/ip.h>    // struct iphdr
+	#include <netinet/tcp.h>  // struct tcphdr
 
 
 
