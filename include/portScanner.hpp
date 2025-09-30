@@ -46,7 +46,8 @@
 	enum PortStatus {
 		PORT_OPEN,
 		PORT_CLOSED,
-		PORT_FILTERED
+		PORT_FILTERED,
+		NETWORK_ERROR
 		// TODO: Add more status types for raw socket scanning
 		// TODO: Add PORT_UNFILTERED, PORT_OPEN_FILTERED states
 	};

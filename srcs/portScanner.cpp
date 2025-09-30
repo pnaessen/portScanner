@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/30 10:31:09 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 10:56:00 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,14 +81,12 @@ ConnectionData PortScanner::setupConnection(int port) {
 	struct ConnectionData data;
 
 	data.socketFd = createRawSocket();
-	//data.socketPoll =  setupPoll(data.socketFd);
 	data.sockaddr = setupSocket(_targetIp, port);
 	if(!data.sockaddr) {
 		cleanupConnectionData(data);
         throw std::runtime_error("Failed to setup socket: ");
 	}
 	// TODO: Add socket options for better performance (SO_REUSEADDR, etc.)
-	fcntl(data.socketFd, F_SETFL, O_NONBLOCK);
 	return data;
 }
 
@@ -225,12 +223,12 @@ PortStatus PortScanner::testSinglePort(int port) {
 	{
 		ConnectionData data = setupConnection(port);
 		// TODO: Creat ip and tcp headers
-		char buffer[4096];
-		int packetLen = 0; // total length of  packet 40 bytes ??
+		char buffer[40];
+		int packetLen = 40; // total length of  packet 40 bytes ??
 		int sendSocket = sendto(data.socketFd, buffer, packetLen, 0,(struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
 		if(sendSocket < 0) {
 			cleanupConnectionData(data);
-			return PORT_CLOSED;
+			return NETWORK_ERROR;
 		}
 		// int status = connect(data.socketFd, (struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
 		// if(status < 0 && errno == EINPROGRESS) {
@@ -273,14 +271,14 @@ void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& res
 int PortScanner::createRawSocket() {
 
 	int socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
-	int error = 0;
 	if(socketFd < 0) {
 		throw std::runtime_error("Fail socket creation");
 	}
 
-	setsockopt(socketFd, IPPROTO_IP, IP_HDRINCL, &error, sizeof(error));
-	if(error < 0) {
-		throw std::runtime_error("Fail settings socket");
+	int one = 1;
+	if (setsockopt(socketFd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
+    	throw std::runtime_error("Fail settings socket");
 	}
+
     return socketFd;
 }
