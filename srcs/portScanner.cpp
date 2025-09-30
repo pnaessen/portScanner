@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/30 08:54:33 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 10:13:05 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -261,4 +261,20 @@ void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& res
         results.push_back(res);
         progress++;
     }
+}
+
+
+int PortScanner::createRawSocket() {
+
+	int socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
+	int error = 0;
+	if(socketFd < 0) {
+		throw std::runtime_error("Fail socket creation");
+	}
+
+	setsockopt(socketFd, IPPROTO_IP, IP_HDRINCL, &error, sizeof(error));
+	if(error < 0) {
+		throw std::runtime_error("Fail settings socket");
+	}
+    return socketFd;
 }
