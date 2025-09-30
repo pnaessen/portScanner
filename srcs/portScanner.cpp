@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 13:57:19 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 08:54:33 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,10 @@ PortScanner::PortScanner(const std::string& target, bool flag) : _timeoutMs(DEFA
 	try {
 		_targetIp = checkIpValid(target);
     	_threadCount = std::thread::hardware_concurrency();
+		if(getuid() != 0) {
+			throw std::out_of_range("No root privilege ");
+		}
 		// TODO: Add option to configure timeout
-		// TODO: Add option to configure thread count
-		// TODO: Validate raw socket privileges for SYN scanning
 	}
 	catch (std::exception &e) {
 		std::cerr << e.what();
@@ -80,6 +81,7 @@ ConnectionData PortScanner::setupConnection(int port) {
 	struct ConnectionData data;
 
 	// TODO: Add support for raw sockets (SOCK_RAW) for SYN scanning
+	//data.socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
 	data.socketFd = socket(AF_INET,SOCK_STREAM, 0);
 	data.socketPoll =  setupPoll(data.socketFd);
 	data.sockaddr = setupSocket(_targetIp, port);

@@ -6,14 +6,13 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/28 11:34:00 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 07:47:29 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "portScanner.hpp"
 #include "cli.hpp"
 
-// TODO: Add verbose/quiet mode options
 
 int main(int argc, char **argv) {
 
@@ -55,12 +54,12 @@ int main(int argc, char **argv) {
 // struct tcp_header {
 //     uint16_t source_port;      // Ex: 12345 (aléatoire)
 //     uint16_t dest_port;        // 80
-//     uint32_t seq_number;       // Ex: 0xABCD1234 (aléatoire)
+//     uint32_t seq_number;       // Ex: 0xABCD1234 (aléatoire) permet de cree le syn
 //     uint32_t ack_number;       // 0
 //     uint8_t  header_len_res;   // (5 << 4) | 0 = 0x50
 //     uint8_t  flags;            // 0x02 (SYN)
 //     uint16_t window_size;      // 65535
-//     uint16_t checksum;         // Calculé plus tard
+//     uint16_t checksum;         // Calculé plus tard check if headers not corrupt
 //     uint16_t urgent_pointer;   // 0
 // };
 
@@ -81,7 +80,6 @@ int main(int argc, char **argv) {
 // 16-19  | Destination IP   | 32 bits| IP cible
 
 // ========== RAW SOCKET IMPLEMENTATION TODOS ==========
-// TODO: CRITICAL - Check for root privileges before raw socket creation
 // TODO: CRITICAL - Implement proper IP header construction
 // TODO: CRITICAL - Implement TCP header construction with SYN flag
 // TODO: CRITICAL - Calculate IP and TCP checksums correctly
@@ -91,3 +89,16 @@ int main(int argc, char **argv) {
 // TODO: MEDIUM - Implement packet fragmentation handling
 // TODO: LOW - Add stealth scanning techniques (decoy packets)
 // TODO: LOW - Implement OS fingerprinting based on responses
+
+
+// 1. Créer IP header, remplir TOUS champs SAUF ip_checksum
+// 2. Calculer ip_checksum sur l'IP header
+// 3. Mettre ip_checksum dans l'IP header
+
+// 4. Créer TCP header, remplir TOUS champs SAUF tcp_checksum (mettre 0)
+// 5. Construire pseudo-header avec infos de l'IP header
+// 6. Calculer tcp_checksum sur [pseudo-header + TCP header]
+// 7. Mettre tcp_checksum dans le TCP header
+
+// 8. Assembler paquet final : [IP header + TCP header]
+// 9. Envoyer avec sendto()
