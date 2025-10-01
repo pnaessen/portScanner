@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/30 11:25:36 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/09/30 11:40:59 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,13 +240,40 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 	return finalResult;
 }
 
+void fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
+
+	ip->version = 4;
+	ip->ihl = 5;
+	ip->tos = 0;
+	ip->ttl = htons(totalLen);
+	ip->id = htons(54321);
+	ip->frag_off = 0;
+	ip->ttl = 64;
+	ip->protocol = IPPROTO_TCP;
+	ip->saddr = inet_addr(srcIp.c_str());
+	ip->daddr = dstIp;
+	ip->check = 0; // need calculate later
+}
+
+void fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port) {
+
+	tcp->Source = htons(srcPort);
+	tcp->dest = htons(port);
+	tcp->seq = htonl(0);
+	tcp->ack_seq = 0;
+	tcp->doff = sizeof(struct tcphdr);
+	tcp->syn = 1;
+	tcp->window = htons(5840);
+	tcp->urg_ptr = 0;
+	tcp->check = 0; // need calculate later
+}
+
 PortStatus PortScanner::testSinglePort(int port) {
 
 	try
 	{
 		ConnectionData data = setupConnection(port);
 
-		// TODO: Creat ip and tcp headers
 		char buffer[40];
 		uint16_t srcPort = rand() % (65535 - 49152 + 1) + 49152;
 		struct iphdr* ip = (struct iphdr*)buffer;
