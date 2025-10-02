@@ -96,7 +96,7 @@
 
 			int createRawSocket();
 			void fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen);
-			void fillTcpHeader(struct tcphdr* tcp, int srcPort, int dstPort);
+			void fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port);
 			std::string getLocalIP(const std::string& target_ip);
 
 

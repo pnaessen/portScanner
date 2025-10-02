@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/09/30 11:40:59 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/02 09:39:52 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,9 @@ PortScanner::PortScanner(const std::string& targetIP, bool flag) : _timeoutMs(DE
 		_targetIp = checkIpValid(targetIP);
     	_threadCount = std::thread::hardware_concurrency();
 		_localIp = getLocalIP("8.8.8.8");
-		if(getuid() != 0) {
-			throw std::out_of_range("No root privilege ");
-		}
+		// if(getuid() != 0) {
+		// 	throw std::out_of_range("No root privilege ");
+		// }
 		// TODO: Add option to configure timeout
 	}
 	catch (std::exception &e) {
@@ -240,7 +240,31 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 	return finalResult;
 }
 
-void fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
+uint16_t ip_checksum(void* hdr, int len) {
+    uint32_t sum = 0;
+    uint16_t* ptr = (uint16_t*)hdr;
+
+	std::cout << len << std::endl;
+    for (int i = 0; i < len / 2; i++) {
+        sum += ntohs(ptr[i]); // ensure network order
+        if (sum > 0xFFFF) {
+            sum = (sum & 0xFFFF) + (sum >> 16);
+        }
+    }
+
+    // If odd length, add last byte
+    if (len % 2) {
+        sum += ((uint8_t*)hdr)[len - 1] << 8;
+        if (sum > 0xFFFF) {
+            sum = (sum & 0xFFFF) + (sum >> 16);
+        }
+    }
+
+    // One's complement
+    return htons(~sum & 0xFFFF);
+}
+
+void PortScanner::fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
 
 	ip->version = 4;
 	ip->ihl = 5;
@@ -253,15 +277,17 @@ void fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, 
 	ip->saddr = inet_addr(srcIp.c_str());
 	ip->daddr = dstIp;
 	ip->check = 0; // need calculate later
+	ip->check = ip_checksum(ip, sizeof(struct iphdr));
+
 }
 
-void fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port) {
+void PortScanner::fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port) {
 
-	tcp->Source = htons(srcPort);
+	tcp->source = htons(srcPort);
 	tcp->dest = htons(port);
 	tcp->seq = htonl(0);
 	tcp->ack_seq = 0;
-	tcp->doff = sizeof(struct tcphdr);
+	tcp->doff = htons(sizeof(struct tcphdr));
 	tcp->syn = 1;
 	tcp->window = htons(5840);
 	tcp->urg_ptr = 0;
@@ -282,6 +308,7 @@ PortStatus PortScanner::testSinglePort(int port) {
 		fillIpHeader(ip, _localIp, data.sockaddr->sin_addr.s_addr, sizeof(buffer));
 		fillTcpHeader(tcp, srcPort, port);
 
+		std::exit(1);
 		int packetLen = 40;
 		int sendSocket = sendto(data.socketFd, buffer, packetLen, 0,(struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
 		if(sendSocket < 0) {
@@ -323,12 +350,12 @@ int PortScanner::createRawSocket() {
 
 	int socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
 	if(socketFd < 0) {
-		throw std::runtime_error("Fail socket creation");
+		throw std::runtime_error("Fail socket creation ");
 	}
 
 	int one = 1;
 	if (setsockopt(socketFd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
-    	throw std::runtime_error("Fail settings socket");
+    	throw std::runtime_error("Fail settings socket ");
 	}
 
     return socketFd;
