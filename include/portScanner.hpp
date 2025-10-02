@@ -66,6 +66,13 @@
 		// TODO: Add banner grabbing results
 	};
 
+	struct pseudoHeader {
+    uint32_t src_addr;
+    uint32_t dst_addr;
+    uint8_t zero;
+    uint8_t protocol;
+    uint16_t tcp_length;
+	};
 
 	class PortScanner {
 		private:
@@ -98,6 +105,7 @@
 			void fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen);
 			void fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port);
 			std::string getLocalIP(const std::string& target_ip);
+			void tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len);
 
 
 		public:

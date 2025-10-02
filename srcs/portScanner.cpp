@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/10/02 09:39:52 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/02 17:56:51 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,28 +240,36 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 	return finalResult;
 }
 
-uint16_t ip_checksum(void* hdr, int len) {
+uint16_t ipChecksum(void* hdr, int len) {
     uint32_t sum = 0;
     uint16_t* ptr = (uint16_t*)hdr;
 
-	std::cout << len << std::endl;
     for (int i = 0; i < len / 2; i++) {
-        sum += ntohs(ptr[i]); // ensure network order
+        sum += ntohs(ptr[i]);
         if (sum > 0xFFFF) {
             sum = (sum & 0xFFFF) + (sum >> 16);
         }
     }
 
-    // If odd length, add last byte
-    if (len % 2) {
+	if (len % 2) {
         sum += ((uint8_t*)hdr)[len - 1] << 8;
         if (sum > 0xFFFF) {
             sum = (sum & 0xFFFF) + (sum >> 16);
         }
     }
 
-    // One's complement
     return htons(~sum & 0xFFFF);
+}
+
+void tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len) {
+
+	struct pseudoHeader pseudoHdr;
+	pseudoHdr.src_addr = ip->saddr;
+	pseudoHdr.dst_addr = ip->daddr;
+	pseudoHdr.zero = 0;
+	pseudoHdr.protocol = IPPROTO_TCP;
+	pseudoHdr.tcp_length = htons(len);
+	
 }
 
 void PortScanner::fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
@@ -269,15 +277,15 @@ void PortScanner::fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_ad
 	ip->version = 4;
 	ip->ihl = 5;
 	ip->tos = 0;
-	ip->ttl = htons(totalLen);
+	ip->tot_len = htons(totalLen);
 	ip->id = htons(54321);
 	ip->frag_off = 0;
 	ip->ttl = 64;
 	ip->protocol = IPPROTO_TCP;
 	ip->saddr = inet_addr(srcIp.c_str());
 	ip->daddr = dstIp;
-	ip->check = 0; // need calculate later
-	ip->check = ip_checksum(ip, sizeof(struct iphdr));
+	ip->check = 0;
+	ip->check = ipChecksum(ip, sizeof(struct iphdr));
 
 }
 
@@ -287,11 +295,11 @@ void PortScanner::fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port) 
 	tcp->dest = htons(port);
 	tcp->seq = htonl(0);
 	tcp->ack_seq = 0;
-	tcp->doff = htons(sizeof(struct tcphdr));
+	tcp->doff = 5;
 	tcp->syn = 1;
 	tcp->window = htons(5840);
 	tcp->urg_ptr = 0;
-	tcp->check = 0; // need calculate later
+	tcp->check = 0;
 }
 
 PortStatus PortScanner::testSinglePort(int port) {
@@ -307,6 +315,7 @@ PortStatus PortScanner::testSinglePort(int port) {
 
 		fillIpHeader(ip, _localIp, data.sockaddr->sin_addr.s_addr, sizeof(buffer));
 		fillTcpHeader(tcp, srcPort, port);
+		tcpChecksum(ip, tcp, sizeof(struct tcphdr));
 
 		std::exit(1);
 		int packetLen = 40;

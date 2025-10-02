@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 07:40:59 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/10/02 09:34:09 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/02 17:37:43 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,8 +81,6 @@ int main(int argc, char **argv) {
 // 16-19  | Destination IP   | 32 bits| IP cible
 
 // ========== RAW SOCKET IMPLEMENTATION TODOS ==========
-// TODO: CRITICAL - Implement proper IP header construction
-// TODO: CRITICAL - Implement TCP header construction with SYN flag
 // TODO: CRITICAL - Calculate IP and TCP checksums correctly
 // TODO: CRITICAL - Set up packet capture to receive SYN-ACK responses
 // TODO: CRITICAL - Parse received packets to determine port status
