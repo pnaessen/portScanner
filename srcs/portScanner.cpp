@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/10/02 17:56:51 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/03 10:55:58 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,6 +241,7 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 }
 
 uint16_t ipChecksum(void* hdr, int len) {
+
     uint32_t sum = 0;
     uint16_t* ptr = (uint16_t*)hdr;
 
@@ -261,7 +262,7 @@ uint16_t ipChecksum(void* hdr, int len) {
     return htons(~sum & 0xFFFF);
 }
 
-void tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len) {
+void PortScanner::tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len) {
 
 	struct pseudoHeader pseudoHdr;
 	pseudoHdr.src_addr = ip->saddr;
@@ -269,7 +270,13 @@ void tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len) {
 	pseudoHdr.zero = 0;
 	pseudoHdr.protocol = IPPROTO_TCP;
 	pseudoHdr.tcp_length = htons(len);
-	
+
+	char *bufferTmp = new char(sizeof(struct pseudoHeader) + len);
+	std::memcpy(bufferTmp, &pseudoHdr, sizeof(struct pseudoHeader));
+	std::memcpy(bufferTmp + sizeof(struct pseudoHeader), tcp, len);
+
+	tcp->check = ipChecksum(bufferTmp, sizeof(struct pseudoHeader) + len);
+	delete bufferTmp;
 }
 
 void PortScanner::fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
