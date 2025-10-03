@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/10/03 10:55:58 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/03 11:38:59 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -246,7 +246,7 @@ uint16_t ipChecksum(void* hdr, int len) {
     uint16_t* ptr = (uint16_t*)hdr;
 
     for (int i = 0; i < len / 2; i++) {
-        sum += ntohs(ptr[i]);
+        sum += ptr[i];
         if (sum > 0xFFFF) {
             sum = (sum & 0xFFFF) + (sum >> 16);
         }
@@ -270,13 +270,13 @@ void PortScanner::tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len) {
 	pseudoHdr.zero = 0;
 	pseudoHdr.protocol = IPPROTO_TCP;
 	pseudoHdr.tcp_length = htons(len);
+	tcp->syn = 1;
 
-	char *bufferTmp = new char(sizeof(struct pseudoHeader) + len);
+	char bufferTmp[sizeof(pseudoHeader) + len];
 	std::memcpy(bufferTmp, &pseudoHdr, sizeof(struct pseudoHeader));
 	std::memcpy(bufferTmp + sizeof(struct pseudoHeader), tcp, len);
 
 	tcp->check = ipChecksum(bufferTmp, sizeof(struct pseudoHeader) + len);
-	delete bufferTmp;
 }
 
 void PortScanner::fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
@@ -324,18 +324,12 @@ PortStatus PortScanner::testSinglePort(int port) {
 		fillTcpHeader(tcp, srcPort, port);
 		tcpChecksum(ip, tcp, sizeof(struct tcphdr));
 
-		std::exit(1);
 		int packetLen = 40;
 		int sendSocket = sendto(data.socketFd, buffer, packetLen, 0,(struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
 		if(sendSocket < 0) {
 			cleanupConnectionData(data);
 			return NETWORK_ERROR;
 		}
-		// int status = connect(data.socketFd, (struct sockaddr *)data.sockaddr, sizeof(*data.sockaddr));
-		// if(status < 0 && errno == EINPROGRESS) {
-		// 	PortStatus result = handleAsyncConnect(data);
-		// 	cleanupConnectionData(data);
-		// 	return result;
 	}
 	catch(const std::exception& e)
 	{
