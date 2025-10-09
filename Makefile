@@ -6,7 +6,9 @@ HEADERS_DIR := include/
 
 SRC := $(SRC_DIR)main.cpp \
 	   $(SRC_DIR)portScanner.cpp \
-	   $(SRC_DIR)cli.cpp
+	   $(SRC_DIR)cli.cpp \
+	   $(SRC_DIR)progress.cpp \
+       $(SRC_DIR)threadUtils.cpp
 
 OBJ := $(SRC:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
 DEPS := $(OBJ:.o=.d)
