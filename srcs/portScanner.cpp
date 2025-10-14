@@ -19,9 +19,9 @@ PortScanner::PortScanner(const std::string& targetIP, bool flag) : _timeoutMs(DE
 		_targetIp = checkIpValid(targetIP);
     	_threadCount = std::thread::hardware_concurrency();
 		_localIp = getLocalIP("8.8.8.8");
-		// if(getuid() != 0) {
-		// 	throw std::out_of_range("No root privilege ");
-		// }
+		if(getuid() != 0) {
+			throw std::out_of_range("No root privilege ");
+		}
 		// TODO: Add option to configure timeout
 	}
 	catch (std::exception &e) {
@@ -50,67 +50,6 @@ std::string PortScanner::getLocalIP(const std::string& target_ip) {
 
     close(sockFd);
     return std::string(ip_str);
-}
-
-std::string PortScanner::checkIpValid(const std::string& ip) {
-
-	sockaddr_in sockaddr;
-	struct addrinfo *addinfo;
-	char ipstr[INET_ADDRSTRLEN] = {0};
-
-	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
-	if (status == 0) {
-		struct sockaddr_in* addr_in = (struct sockaddr_in*)addinfo->ai_addr;
-		sockaddr.sin_addr.s_addr = addr_in->sin_addr.s_addr;
-		inet_ntop(AF_INET, &sockaddr.sin_addr, ipstr, sizeof(ipstr));
-		freeaddrinfo(addinfo);
-		return std::string(ipstr);
-	}
-	else {
-		sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
-		if(sockaddr.sin_addr.s_addr == INADDR_NONE) {
-			throw std::out_of_range("DNS resolution failed: ") ;
-		}
-		else {
-			return ip;
-		}
-	}
-}
-
-pollfd* PortScanner::setupPoll(int socketFd) {
-
-	pollfd* socketPoll = new pollfd;
-
-	socketPoll->fd = socketFd;
-	socketPoll->events = POLLIN;
-
-	return socketPoll;
-}
-
-
-sockaddr_in* PortScanner::setupSocket(const std::string& ip, int port) {
-
-	sockaddr_in* sockaddr = new sockaddr_in;
-
-
-	sockaddr->sin_port = htons(port);
-	sockaddr->sin_family = AF_INET;
-	sockaddr->sin_addr.s_addr = inet_addr(ip.c_str());
-	return sockaddr;
-}
-
-ConnectionData PortScanner::setupConnection(int port) {
-
-	struct ConnectionData data;
-
-	data.socketFd = createRawSocket();
-	data.sockaddr = setupSocket(_targetIp, port);
-	if(!data.sockaddr) {
-		cleanupConnectionData(data);
-        throw std::runtime_error("Failed to setup socket: ");
-	}
-	// TODO: Add socket options for better performance (SO_REUSEADDR, etc.)
-	return data;
 }
 
 void PortScanner::cleanupConnectionData(ConnectionData& data) {
@@ -145,11 +84,6 @@ PortStatus PortScanner::handleAsyncConnect(ConnectionData& data) {
 }
 
 
-
-
-
-
-
 std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 
 
@@ -175,73 +109,18 @@ std::vector<PortResult> PortScanner::scanRange(int startPort, int endPort) {
 	return finalResult;
 }
 
-uint16_t ipChecksum(void* hdr, int len) {
+ConnectionData PortScanner::setupConnection(int port) {
 
-    uint32_t sum = 0;
-    uint16_t* ptr = (uint16_t*)hdr;
+	struct ConnectionData data;
 
-    for (int i = 0; i < len / 2; i++) {
-        sum += ptr[i];
-        if (sum > 0xFFFF) {
-            sum = (sum & 0xFFFF) + (sum >> 16);
-        }
-    }
-
-	if (len % 2) {
-        sum += ((uint8_t*)hdr)[len - 1] << 8;
-        if (sum > 0xFFFF) {
-            sum = (sum & 0xFFFF) + (sum >> 16);
-        }
-    }
-
-    return htons(~sum & 0xFFFF);
-}
-
-void PortScanner::tcpChecksum(struct iphdr* ip, struct tcphdr* tcp, int len) {
-
-	struct pseudoHeader pseudoHdr;
-	pseudoHdr.src_addr = ip->saddr;
-	pseudoHdr.dst_addr = ip->daddr;
-	pseudoHdr.zero = 0;
-	pseudoHdr.protocol = IPPROTO_TCP;
-	pseudoHdr.tcp_length = htons(len);
-	tcp->syn = 1;
-
-	char bufferTmp[sizeof(pseudoHeader) + len];
-	std::memcpy(bufferTmp, &pseudoHdr, sizeof(struct pseudoHeader));
-	std::memcpy(bufferTmp + sizeof(struct pseudoHeader), tcp, len);
-
-	tcp->check = ipChecksum(bufferTmp, sizeof(struct pseudoHeader) + len);
-}
-
-void PortScanner::fillIpHeader(struct iphdr* ip, const std::string& srcIp, in_addr_t& dstIp, int totalLen) {
-
-	ip->version = 4;
-	ip->ihl = 5;
-	ip->tos = 0;
-	ip->tot_len = htons(totalLen);
-	ip->id = htons(54321);
-	ip->frag_off = 0;
-	ip->ttl = 64;
-	ip->protocol = IPPROTO_TCP;
-	ip->saddr = inet_addr(srcIp.c_str());
-	ip->daddr = dstIp;
-	ip->check = 0;
-	ip->check = ipChecksum(ip, sizeof(struct iphdr));
-
-}
-
-void PortScanner::fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port) {
-
-	tcp->source = htons(srcPort);
-	tcp->dest = htons(port);
-	tcp->seq = htonl(0);
-	tcp->ack_seq = 0;
-	tcp->doff = 5;
-	tcp->syn = 1;
-	tcp->window = htons(5840);
-	tcp->urg_ptr = 0;
-	tcp->check = 0;
+	data.socketFd = createRawSocket();
+	data.sockaddr = setupSocket(_targetIp, port);
+	if(!data.sockaddr) {
+		cleanupConnectionData(data);
+        throw std::runtime_error("Failed to setup socket: ");
+	}
+	// TODO: Add socket options for better performance (SO_REUSEADDR, etc.)
+	return data;
 }
 
 PortStatus PortScanner::testSinglePort(int port) {
@@ -288,20 +167,4 @@ void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& res
         results.push_back(res);
         progress++;
     }
-}
-
-
-int PortScanner::createRawSocket() {
-
-	int socketFd = socket(AF_INET, SOCK_RAW, IPPROTO_TCP);
-	if(socketFd < 0) {
-		throw std::runtime_error("Fail socket creation ");
-	}
-
-	int one = 1;
-	if (setsockopt(socketFd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
-    	throw std::runtime_error("Fail settings socket ");
-	}
-
-    return socketFd;
 }

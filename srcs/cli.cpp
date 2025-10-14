@@ -117,3 +117,28 @@ void printUsageMenu() {
               << "----------------------------------------\n"
               << std::endl;
 }
+
+std::string PortScanner::checkIpValid(const std::string& ip) {
+
+	sockaddr_in sockaddr;
+	struct addrinfo *addinfo;
+	char ipstr[INET_ADDRSTRLEN] = {0};
+
+	int status = getaddrinfo(ip.c_str(), NULL, NULL, &addinfo);
+	if (status == 0) {
+		struct sockaddr_in* addr_in = (struct sockaddr_in*)addinfo->ai_addr;
+		sockaddr.sin_addr.s_addr = addr_in->sin_addr.s_addr;
+		inet_ntop(AF_INET, &sockaddr.sin_addr, ipstr, sizeof(ipstr));
+		freeaddrinfo(addinfo);
+		return std::string(ipstr);
+	}
+	else {
+		sockaddr.sin_addr.s_addr = inet_addr(ip.c_str());
+		if(sockaddr.sin_addr.s_addr == INADDR_NONE) {
+			throw std::out_of_range("DNS resolution failed: ") ;
+		}
+		else {
+			return ip;
+		}
+	}
+}
