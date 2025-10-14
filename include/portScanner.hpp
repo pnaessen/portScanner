@@ -74,6 +74,26 @@
     uint16_t tcp_length;
 	};
 
+
+struct RecvSocket {
+	int fd;
+	explicit RecvSocket(int fd_ = -1) : fd(fd_) {}
+	~RecvSocket() { if (fd >= 0) ::close(fd); }
+	RecvSocket(const RecvSocket&) = delete;
+	RecvSocket& operator=(const RecvSocket&) = delete;
+	RecvSocket(RecvSocket&& other) noexcept : fd(other.fd) { other.fd = -1; }
+	RecvSocket& operator=(RecvSocket&& other) noexcept {
+		if (this != &other) {
+			if (fd >= 0) ::close(fd);
+			fd = other.fd;
+			other.fd = -1;
+		}
+		return *this;
+	}
+	int get() const { return fd; }
+	explicit operator bool() const { return fd >= 0; }
+};
+
 	class PortScanner {
 		private:
 			std::string _targetIp;

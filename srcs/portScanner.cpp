@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/10/09 11:09:04 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/14 16:10:48 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,6 +144,7 @@ PortStatus PortScanner::testSinglePort(int port,int recvSocket) {
 			cleanupConnectionData(data);
 			return NETWORK_ERROR;
 		}
+		(void)recvSocket;
 	}
 	catch(const std::exception& e)
 	{
@@ -157,16 +158,15 @@ void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& res
 
 	// TODO: Implement adaptive timing based on network conditions
 
-	int recvSocket = createRawSocket();
-    results.reserve(end - start + 1);
+	RecvSocket recvSocket(createRawSocket());
+	results.reserve(end - start + 1);
     for(int port = start; port <= end; port++) {
         PortResult res;
         res.port = port;
-        res.status = testSinglePort(port, recvSocket);
+		res.status = testSinglePort(port, recvSocket.get());
 		// TODO: Add rate limiting to avoid detection
 		// TODO: Add randomization of port scan order
         results.push_back(res);
         progress++;
-    }
-	close(recvSocket);
+	}
 }
