@@ -90,7 +90,7 @@
 
 			void cleanupConnectionData(ConnectionData& data);
 
-			PortStatus testSinglePort(int port);
+			PortStatus testSinglePort(int port, int recvSocket);
 			PortStatus handleAsyncConnect(ConnectionData& data);
 
 			std::vector<std::pair<int, int>> calculateThreadDistribution(int start, int end);

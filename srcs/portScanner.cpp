@@ -123,7 +123,7 @@ ConnectionData PortScanner::setupConnection(int port) {
 	return data;
 }
 
-PortStatus PortScanner::testSinglePort(int port) {
+PortStatus PortScanner::testSinglePort(int port,int recvSocket) {
 
 	try
 	{
@@ -157,14 +157,16 @@ void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& res
 
 	// TODO: Implement adaptive timing based on network conditions
 
+	int recvSocket = createRawSocket();
     results.reserve(end - start + 1);
     for(int port = start; port <= end; port++) {
         PortResult res;
         res.port = port;
-        res.status = testSinglePort(port);
+        res.status = testSinglePort(port, recvSocket);
 		// TODO: Add rate limiting to avoid detection
 		// TODO: Add randomization of port scan order
         results.push_back(res);
         progress++;
     }
+	close(recvSocket);
 }
