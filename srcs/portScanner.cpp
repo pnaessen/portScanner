@@ -6,7 +6,7 @@
 /*   By: pnaessen <pnaessen@student.42lyon.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/27 08:02:22 by pnaessen          #+#    #+#             */
-/*   Updated: 2025/10/14 16:10:48 by pnaessen         ###   ########lyon.fr   */
+/*   Updated: 2025/10/14 16:51:36 by pnaessen         ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,7 +144,40 @@ PortStatus PortScanner::testSinglePort(int port,int recvSocket) {
 			cleanupConnectionData(data);
 			return NETWORK_ERROR;
 		}
-		(void)recvSocket;
+
+        struct pollfd pfd;
+        pfd.fd = recvSocket;
+        pfd.events = POLLIN;
+
+        char recvBuffer[1500];
+        while (poll(&pfd, 1, _timeoutMs) > 0) {
+            ssize_t n = recv(recvSocket, recvBuffer, sizeof(recvBuffer), 0);
+            if (n < 0) {
+                if (errno == EAGAIN || errno == EWOULDBLOCK)
+					continue;
+                break;
+            }
+
+            struct iphdr* ip_reply = (struct iphdr*)recvBuffer;
+            if (ip_reply->protocol != IPPROTO_TCP)
+				continue;
+
+            struct tcphdr* tcp_reply = (struct tcphdr*)(recvBuffer + (ip_reply->ihl << 2));
+            if (tcp_reply->dest != htons(srcPort))
+				continue;
+
+            if ((tcp_reply->syn) && (tcp_reply->ack)) {
+                cleanupConnectionData(data);
+                return PORT_OPEN;
+            }
+            if (tcp_reply->rst) {
+                cleanupConnectionData(data);
+                return PORT_CLOSED;
+            }
+        }
+
+        cleanupConnectionData(data);
+        return PORT_FILTERED;  // No response = filtered
 	}
 	catch(const std::exception& e)
 	{
@@ -158,15 +191,19 @@ void PortScanner::scanPortRange(int start, int end, std::vector<PortResult>& res
 
 	// TODO: Implement adaptive timing based on network conditions
 
-	RecvSocket recvSocket(createRawSocket());
+	int recvSocket = createRawSocket();
+	if (recvSocket < 0) {
+		throw std::runtime_error("Failed to create receive socket");
+	}
 	results.reserve(end - start + 1);
     for(int port = start; port <= end; port++) {
         PortResult res;
         res.port = port;
-		res.status = testSinglePort(port, recvSocket.get());
+		res.status = testSinglePort(port, recvSocket);
 		// TODO: Add rate limiting to avoid detection
 		// TODO: Add randomization of port scan order
         results.push_back(res);
         progress++;
 	}
+	close(recvSocket);
 }
