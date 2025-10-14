@@ -74,7 +74,7 @@ void PortScanner::fillTcpHeader(struct tcphdr* tcp, uint16_t srcPort, int port) 
 
 	tcp->source = htons(srcPort);
 	tcp->dest = htons(port);
-	tcp->seq = htonl(0);
+	tcp->seq = htonl(0); //need fix 
 	tcp->ack_seq = 0;
 	tcp->doff = 5;
 	tcp->syn = 1;
